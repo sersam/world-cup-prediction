@@ -120,9 +120,9 @@ export default async function Home() {
 
   return (
     <main className="pitch-bg pitch-lines min-h-screen text-[#102015]">
-      <section className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-6 sm:px-8">
+      <section className="relative z-10 mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-8 px-4 py-6 sm:px-8">
         <header className="glass-panel rounded-xl p-5 md:flex md:items-center md:justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#147a45]">
               {user.group?.name}
             </p>
@@ -134,7 +134,10 @@ export default async function Home() {
             <Link className="rounded-md bg-[#facc15] px-4 py-2 text-[#102015]" href="/ranking">
               Ranking grupo
             </Link>
-            <Link className="rounded-md border border-[#147a45] px-4 py-2 text-[#102015]" href="/ranking-global">
+            <Link
+              className="rounded-md border border-[#147a45] px-4 py-2 text-[#102015]"
+              href="/ranking-global"
+            >
               Ranking global
             </Link>
           </nav>
@@ -163,8 +166,8 @@ export default async function Home() {
           ) : null}
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_340px]">
-          <div className="space-y-4">
+        <section className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0 space-y-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-2xl font-semibold">
                 {tomorrowMatches.length > 0 ? "Partidos de manana" : "Proximos partidos"}
@@ -201,22 +204,22 @@ export default async function Home() {
 
                   return (
                     <article
-                      className="match-card rounded-lg p-4 text-[#102015]"
+                      className="match-card min-w-0 rounded-lg p-4 text-[#102015]"
                       key={match.id}
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div>
+                        <div className="min-w-0">
                           <p className="text-sm font-medium text-[#526154]">
                             {formatMatchDate(match.utcDate)}
                           </p>
-                          <h3 className="mt-2 flex flex-wrap items-center gap-2 text-xl font-semibold">
+                          <h3 className="mt-2 flex min-w-0 flex-wrap items-center gap-2 text-xl font-semibold">
                             <FlagBall code={match.homeTeamCode} label={match.homeTeam} small />
-                            <span>{match.homeTeam}</span>
+                            <span className="min-w-0 break-words">{match.homeTeam}</span>
                             <span className="rounded-full bg-[#e7efe3] px-2 py-1 text-xs font-bold text-[#147a45]">
                               vs
                             </span>
                             <FlagBall code={match.awayTeamCode} label={match.awayTeam} small />
-                            <span>{match.awayTeam}</span>
+                            <span className="min-w-0 break-words">{match.awayTeam}</span>
                           </h3>
                           <p className="mt-2 text-sm font-semibold text-[#147a45]">
                             {resultText(match)}
@@ -225,13 +228,13 @@ export default async function Home() {
 
                         <form
                           action="/api/predictions"
-                          className="flex items-end gap-2"
+                          className="grid w-full min-w-0 grid-cols-2 gap-3 md:w-auto md:grid-cols-[auto_auto_auto] md:items-end"
                           method="post"
                         >
                           <input name="matchId" type="hidden" value={match.id} />
                           <label className="grid gap-1 text-xs font-semibold uppercase text-[#526154]">
                             <span>Local</span>
-                            <span className="flex items-center gap-2">
+                            <span className="flex min-w-0 items-center gap-2">
                               <FlagBall code={match.homeTeamCode} label={match.homeTeam} />
                               <input
                                 className="h-11 w-16 rounded-md border border-[#bad0b6] bg-white px-3 text-center text-base font-bold"
@@ -246,7 +249,7 @@ export default async function Home() {
                           </label>
                           <label className="grid gap-1 text-xs font-semibold uppercase text-[#526154]">
                             <span>Visit.</span>
-                            <span className="flex items-center gap-2">
+                            <span className="flex min-w-0 items-center gap-2">
                               <FlagBall code={match.awayTeamCode} label={match.awayTeam} />
                               <input
                                 className="h-11 w-16 rounded-md border border-[#bad0b6] bg-white px-3 text-center text-base font-bold"
@@ -260,7 +263,7 @@ export default async function Home() {
                             </span>
                           </label>
                           <button
-                            className="h-11 rounded-md bg-[#147a45] px-4 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:bg-[#9aaa92]"
+                            className="col-span-2 h-11 rounded-md bg-[#147a45] px-4 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:bg-[#9aaa92] md:col-span-1"
                             disabled={!open}
                             type="submit"
                           >
@@ -268,7 +271,7 @@ export default async function Home() {
                           </button>
                         </form>
                       </div>
-                      <p className="mt-3 rounded-md bg-[#edf5e9] px-3 py-2 text-sm text-[#526154]">
+                      <p className="mt-3 min-w-0 rounded-md bg-[#edf5e9] px-3 py-2 text-sm text-[#526154]">
                         Tu prediccion:{" "}
                         <span className="font-semibold text-[#1d1b16]">
                           {predictionText(prediction)}
@@ -303,27 +306,27 @@ export default async function Home() {
 
                     return (
                       <article
-                        className="match-card rounded-lg p-4 text-[#102015]"
+                        className="match-card min-w-0 rounded-lg p-4 text-[#102015]"
                         key={match.id}
                       >
                         <p className="text-sm font-medium text-[#526154]">
                           {formatMatchDate(match.utcDate)}
                         </p>
                         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <h3 className="flex flex-wrap items-center gap-2 text-lg font-semibold">
+                          <h3 className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-semibold">
                             <FlagBall code={match.homeTeamCode} label={match.homeTeam} small />
-                            <span>{match.homeTeam}</span>
+                            <span className="min-w-0 break-words">{match.homeTeam}</span>
                             <span className="rounded-full bg-[#e7efe3] px-2 py-1 text-xs font-bold text-[#147a45]">
                               vs
                             </span>
                             <FlagBall code={match.awayTeamCode} label={match.awayTeam} small />
-                            <span>{match.awayTeam}</span>
+                            <span className="min-w-0 break-words">{match.awayTeam}</span>
                           </h3>
                           <p className="rounded-md bg-[#102015] px-3 py-2 text-center font-mono text-lg font-bold text-[#facc15]">
                             {resultText(match)}
                           </p>
                         </div>
-                        <p className="mt-3 rounded-md bg-[#edf5e9] px-3 py-2 text-sm text-[#526154]">
+                        <p className="mt-3 min-w-0 rounded-md bg-[#edf5e9] px-3 py-2 text-sm text-[#526154]">
                           Tu prediccion:{" "}
                           <span className="font-semibold text-[#1d1b16]">
                             {predictionText(prediction)}
@@ -337,7 +340,7 @@ export default async function Home() {
             </section>
           </div>
 
-          <aside className="glass-panel rounded-lg p-5 text-[#102015]">
+          <aside className="glass-panel min-w-0 rounded-lg p-5 text-[#102015]">
             <h2 className="text-xl font-semibold">Tu marcador</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex justify-between gap-4">
