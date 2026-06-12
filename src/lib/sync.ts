@@ -1,6 +1,39 @@
+import { MatchStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calculatePredictionPoints } from "@/lib/scoring";
 import { fetchWorldCupMatches } from "@/lib/football-data";
+
+const SMART_SYNC_LOOKAHEAD_MINUTES = 15;
+const SMART_SYNC_FOLLOW_UP_MINUTES = 240;
+
+type SmartSyncMatch = {
+  utcDate: Date;
+  status: MatchStatus;
+};
+
+export function getSmartSyncReason(matches: SmartSyncMatch[], now = new Date()) {
+  if (matches.length === 0) return "empty-calendar";
+
+  const lookaheadMs = SMART_SYNC_LOOKAHEAD_MINUTES * 60 * 1000;
+  const followUpMs = SMART_SYNC_FOLLOW_UP_MINUTES * 60 * 1000;
+  const nowTime = now.getTime();
+
+  for (const match of matches) {
+    if (match.status === MatchStatus.IN_PLAY || match.status === MatchStatus.PAUSED) {
+      return "live-match";
+    }
+
+    const matchTime = match.utcDate.getTime();
+    const syncWindowStart = matchTime - lookaheadMs;
+    const syncWindowEnd = matchTime + followUpMs;
+
+    if (nowTime >= syncWindowStart && nowTime <= syncWindowEnd) {
+      return "match-window";
+    }
+  }
+
+  return null;
+}
 
 export async function syncWorldCupMatches() {
   const matches = await fetchWorldCupMatches();
@@ -16,6 +49,47 @@ export async function syncWorldCupMatches() {
   await scoreFinishedPredictions();
 
   return { synced: matches.length };
+}
+
+export async function smartSyncWorldCupMatches() {
+  const windowStart = new Date(
+    Date.now() - SMART_SYNC_FOLLOW_UP_MINUTES * 60 * 1000,
+  );
+  const windowEnd = new Date(
+    Date.now() + SMART_SYNC_LOOKAHEAD_MINUTES * 60 * 1000,
+  );
+  const matches = await prisma.match.findMany({
+    where: {
+      OR: [
+        {
+          utcDate: {
+            gte: windowStart,
+            lte: windowEnd,
+          },
+        },
+        {
+          status: {
+            in: [MatchStatus.IN_PLAY, MatchStatus.PAUSED],
+          },
+        },
+      ],
+    },
+    select: {
+      utcDate: true,
+      status: true,
+    },
+  });
+  const totalMatches = await prisma.match.count();
+  const reason = getSmartSyncReason(
+    totalMatches === 0 ? [] : matches,
+  );
+
+  if (!reason) {
+    return { mode: "smart", skipped: true, reason: "outside-match-window", synced: 0 };
+  }
+
+  const result = await syncWorldCupMatches();
+  return { mode: "smart", skipped: false, reason, ...result };
 }
 
 export async function scoreFinishedPredictions() {

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { syncWorldCupMatches } from "@/lib/sync";
+import { smartSyncWorldCupMatches, syncWorldCupMatches } from "@/lib/sync";
 
-async function runSync() {
-  const result = await syncWorldCupMatches();
+async function runSync(mode: "full" | "smart") {
+  const result =
+    mode === "smart" ? await smartSyncWorldCupMatches() : await syncWorldCupMatches();
   return NextResponse.json(result);
 }
 
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return runSync();
+  return runSync("smart");
 }
 
 export async function POST(request: Request) {
@@ -23,5 +24,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return runSync();
+  return runSync("full");
 }
