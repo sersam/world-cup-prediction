@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Prediccion Mundial",
   description: "Predicciones por grupos para el Mundial",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
