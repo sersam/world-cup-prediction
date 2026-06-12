@@ -220,6 +220,7 @@ export default async function GroupHome({
                 {matches.map((match) => {
                   const prediction = match.predictions[0];
                   const open = isPredictionOpen(match.utcDate);
+                  const missingClosedPrediction = !open && !prediction;
 
                   return (
                     <article
@@ -258,12 +259,14 @@ export default async function GroupHome({
                               <FlagBall code={match.homeTeamCode} label={match.homeTeam} />
                               <input
                                 className="h-11 w-16 rounded-md border border-[#bad0b6] bg-white px-3 text-center text-base font-bold"
-                                defaultValue={prediction?.predictedHome ?? ""}
+                                defaultValue={
+                                  prediction?.predictedHome ?? (missingClosedPrediction ? "-" : "")
+                                }
                                 disabled={!open}
                                 min={0}
                                 name="predictedHome"
                                 required
-                                type="number"
+                                type={missingClosedPrediction ? "text" : "number"}
                               />
                             </span>
                           </label>
@@ -273,12 +276,14 @@ export default async function GroupHome({
                               <FlagBall code={match.awayTeamCode} label={match.awayTeam} />
                               <input
                                 className="h-11 w-16 rounded-md border border-[#bad0b6] bg-white px-3 text-center text-base font-bold"
-                                defaultValue={prediction?.predictedAway ?? ""}
+                                defaultValue={
+                                  prediction?.predictedAway ?? (missingClosedPrediction ? "-" : "")
+                                }
                                 disabled={!open}
                                 min={0}
                                 name="predictedAway"
                                 required
-                                type="number"
+                                type={missingClosedPrediction ? "text" : "number"}
                               />
                             </span>
                           </label>
