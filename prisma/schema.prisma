@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MatchStatus {
+  SCHEDULED
+  TIMED
+  IN_PLAY
+  PAUSED
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+model User {
+  id           String       @id @default(cuid())
+  nickname     String       @unique
+  pinHash      String
+  totalPoints  Int          @default(0)
+  groupId      String?
+  group        Group?       @relation("GroupMembers", fields: [groupId], references: [id])
+  createdGroups Group[]     @relation("GroupCreator")
+  predictions  Prediction[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Group {
+  id          String       @id @default(cuid())
+  name        String
+  code        String       @unique
+  creatorId   String
+  creator     User         @relation("GroupCreator", fields: [creatorId], references: [id])
+  members     User[]       @relation("GroupMembers")
+  predictions Prediction[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Match {
+  id             String       @id @default(cuid())
+  externalId     Int          @unique
+  competition    String       @default("WC")
+  homeTeam       String
+  awayTeam       String
+  homeTeamCode   String?
+  awayTeamCode   String?
+  utcDate        DateTime
+  status         MatchStatus  @default(SCHEDULED)
+  matchday       Int?
+  stage          String?
+  groupName      String?
+  finalHomeGoals Int?
+  finalAwayGoals Int?
+  predictions    Prediction[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([utcDate])
+  @@index([status])
+}
+
+model Prediction {
+  id             String   @id @default(cuid())
+  userId         String
+  groupId        String
+  matchId        String
+  predictedHome  Int
+  predictedAway  Int
+  points         Int      @default(0)
+  scoredAt       DateTime?
+  user           User     @relation(fields: [userId], references: [id])
+  group          Group    @relation(fields: [groupId], references: [id])
+  match          Match    @relation(fields: [matchId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, groupId, matchId])
+  @@index([groupId])
+  @@index([matchId])
+}

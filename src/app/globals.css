@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+:root {
+  --background: #eef4ea;
+  --foreground: #102015;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+a {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+button:hover,
+a:hover {
+  transform: translateY(-1px);
+}
+
+.pitch-bg {
+  background:
+    radial-gradient(circle at 16% 0%, rgba(250, 204, 21, 0.16), transparent 28%),
+    radial-gradient(circle at 86% 8%, rgba(22, 163, 74, 0.18), transparent 30%),
+    linear-gradient(90deg, rgba(20, 122, 69, 0.06) 1px, transparent 1px),
+    repeating-linear-gradient(
+      90deg,
+      rgba(34, 197, 94, 0.08) 0,
+      rgba(34, 197, 94, 0.08) 80px,
+      rgba(255, 255, 255, 0.18) 80px,
+      rgba(255, 255, 255, 0.18) 160px
+    ),
+    linear-gradient(135deg, #f8fbf5 0%, #e6f0e2 52%, #d8ead5 100%);
+}
+
+.pitch-lines {
+  position: relative;
+  overflow: hidden;
+}
+
+.pitch-lines::before {
+  border: 1px solid rgba(20, 122, 69, 0.11);
+  border-left: 0;
+  border-right: 0;
+  content: "";
+  inset: 22px 0 auto;
+  height: 46%;
+  pointer-events: none;
+  position: absolute;
+}
+
+.pitch-lines::after {
+  border: 1px solid rgba(20, 122, 69, 0.11);
+  border-radius: 999px;
+  content: "";
+  height: 220px;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  top: 110px;
+  transform: translateX(-50%);
+  width: 220px;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(203, 221, 197, 0.9);
+  box-shadow: 0 16px 40px rgba(16, 32, 21, 0.12);
+}
+
+.match-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 241, 0.98)),
+    #ffffff;
+  border: 1px solid rgba(212, 226, 207, 0.9);
+  box-shadow: 0 12px 28px rgba(16, 32, 21, 0.11);
+}
+
+.flag-ball {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.22) 30%, transparent 31%),
+    linear-gradient(135deg, #ffffff, #d9e7d3);
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 -6px 12px rgba(15, 23, 42, 0.14),
+    0 5px 13px rgba(15, 23, 42, 0.28);
+  color: #111827;
+  display: inline-flex;
+  font-size: 1.25rem;
+  justify-content: center;
+  min-width: 2.5rem;
+  overflow: hidden;
+}
+
+.flag-ball-sm {
+  font-size: 1rem;
+  min-width: 2rem;
+}
