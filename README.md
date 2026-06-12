@@ -1,8 +1,9 @@
 # Prediccion Mundial
 
-App web full-stack para predicciones del Mundial por grupos. Cada usuario entra con
-usuario + contrasena, crea o se une a un grupo con codigo, predice resultados y compite
-en ranking de grupo y ranking global.
+App web full-stack para predicciones del Mundial por grupos. El usuario empieza
+creando un grupo o uniendose con codigo/link de invitacion; despues entra con
+usuario + contrasena dentro de ese grupo, predice resultados y compite en ranking
+de grupo y ranking global.
 
 ## Stack
 

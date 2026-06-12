@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
+import { normalizeGroupCode } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const joinSchema = z.object({
@@ -8,10 +8,6 @@ const joinSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.redirect(new URL("/entrar", request.url));
-  if (user.groupId) return NextResponse.redirect(new URL("/?error=already-in-group", request.url));
-
   const formData = await request.formData();
   const parsed = joinSchema.safeParse({ code: formData.get("code") });
   if (!parsed.success) {
@@ -26,10 +22,5 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/grupo?error=no-existe", request.url));
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { groupId: group.id },
-  });
-
-  return NextResponse.redirect(new URL("/", request.url));
+  return NextResponse.redirect(new URL(`/entrar?code=${group.code}`, request.url));
 }

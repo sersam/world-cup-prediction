@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
 import { getCurrentUser } from "@/lib/auth";
@@ -60,8 +61,12 @@ function FlagBall({
 
 export default async function Home() {
   const user = await getCurrentUser();
-  if (!user) redirect("/entrar");
+  if (!user) redirect("/grupo");
   if (!user.groupId) redirect("/grupo");
+  const headerStore = await headers();
+  const host = headerStore.get("host") || "localhost:3000";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const inviteUrl = `${protocol}://${host}/entrar?code=${user.group?.code}`;
 
   const today = getTodayWindow();
   const tomorrow = getTomorrowWindow();
@@ -360,6 +365,18 @@ export default async function Home() {
             <p className="mt-5 rounded-md bg-[#edf5e9] p-3 text-sm text-[#526154]">
               Resultado exacto: 10 puntos. Signo 1X2 correcto, empate incluido: 5 puntos.
             </p>
+            <div className="mt-5 rounded-md border border-[#dfeadd] bg-white p-3">
+              <h3 className="text-sm font-semibold">Comparte este link</h3>
+              <p className="mt-1 text-xs leading-5 text-[#526154]">
+                Quien lo abra entrara directamente a este grupo y solo tendra que poner usuario y
+                contrasena.
+              </p>
+              <input
+                className="mt-3 w-full rounded-md border border-[#bad0b6] bg-[#f8fbf5] px-3 py-2 text-xs"
+                readOnly
+                value={inviteUrl}
+              />
+            </div>
           </aside>
         </section>
       </section>
