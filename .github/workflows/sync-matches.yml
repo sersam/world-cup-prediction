@@ -10,8 +10,43 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate configuration
+        run: |
+          SYNC_URL="$(printf '%s' "${SYNC_URL}" | tr -d '\r\n')"
+          SYNC_URL="${SYNC_URL%\"}"
+          SYNC_URL="${SYNC_URL#\"}"
+          SYNC_URL="${SYNC_URL%\'}"
+          SYNC_URL="${SYNC_URL#\'}"
+
+          if [ -z "${SYNC_URL}" ]; then
+            echo "Missing GitHub Actions secret: SYNC_URL"
+            exit 1
+          fi
+
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "Missing GitHub Actions secret: CRON_SECRET"
+            exit 1
+          fi
+
+          case "${SYNC_URL}" in
+            http://*|https://*) ;;
+            *)
+              echo "Invalid SYNC_URL. Store only the URL, for example: https://your-domain.vercel.app/api/sync"
+              exit 1
+              ;;
+          esac
+        env:
+          SYNC_URL: ${{ secrets.SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
       - name: Call sync endpoint
         run: |
+          SYNC_URL="$(printf '%s' "${SYNC_URL}" | tr -d '\r\n')"
+          SYNC_URL="${SYNC_URL%\"}"
+          SYNC_URL="${SYNC_URL#\"}"
+          SYNC_URL="${SYNC_URL%\'}"
+          SYNC_URL="${SYNC_URL#\'}"
+
           curl --fail --show-error --silent "${SYNC_URL}" \
             -H "Authorization: Bearer ${CRON_SECRET}"
         env:
