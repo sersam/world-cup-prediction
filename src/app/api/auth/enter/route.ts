@@ -10,7 +10,7 @@ import {
 import { prisma } from "@/lib/prisma";
 
 const enterSchema = z.object({
-  code: z.string().min(3).max(24),
+  code: z.string().min(3).max(24).optional(),
   nickname: z.string().min(2).max(40),
   password: z.string().min(4).max(64),
 });
@@ -21,8 +21,9 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
+  const rawCode = formData.get("code");
   const parsed = enterSchema.safeParse({
-    code: formData.get("code"),
+    code: typeof rawCode === "string" && rawCode ? rawCode : undefined,
     nickname: formData.get("nickname"),
     password: formData.get("password"),
   });
@@ -31,44 +32,52 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/grupo?error=datos", request.url));
   }
 
-  const code = normalizeGroupCode(parsed.data.code);
-  const group = await prisma.group.findUnique({ where: { code } });
-  if (!group) {
-    return NextResponse.redirect(new URL("/grupo?error=no-existe", request.url));
-  }
+  const code = parsed.data.code ? normalizeGroupCode(parsed.data.code) : null;
+  const group = code ? await prisma.group.findUnique({ where: { code } }) : null;
+  if (code && !group) return NextResponse.redirect(new URL("/grupo?error=no-existe", request.url));
 
   const nickname = normalizeNickname(parsed.data.nickname);
-  const existing = await prisma.user.findUnique({ where: { nickname } });
+  const existing = await prisma.user.findUnique({
+    where: { nickname },
+    include: { memberships: { include: { group: true }, orderBy: { joinedAt: "asc" } } },
+  });
 
   if (existing) {
     const isValidPassword = await verifyPin(parsed.data.password, existing.pinHash);
     if (!isValidPassword) {
-      return NextResponse.redirect(new URL(`/entrar?code=${code}&error=password`, request.url));
+      return NextResponse.redirect(
+        new URL(code ? `/entrar?code=${code}&error=password` : "/entrar?error=password", request.url),
+      );
     }
 
-    if (existing.groupId && existing.groupId !== group.id) {
-      return NextResponse.redirect(new URL(`/entrar?code=${code}&error=already-in-group`, request.url));
-    }
-
-    if (!existing.groupId) {
-      await prisma.user.update({
-        where: { id: existing.id },
-        data: { groupId: group.id },
+    if (group) {
+      await prisma.groupMember.upsert({
+        where: { userId_groupId: { userId: existing.id, groupId: group.id } },
+        create: { userId: existing.id, groupId: group.id },
+        update: {},
       });
     }
 
     await setSession(existing.id);
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(
+      new URL(group ? `/g/${group.code}` : existing.memberships[0] ? `/g/${existing.memberships[0].group.code}` : "/grupo", request.url),
+    );
   }
 
   const user = await prisma.user.create({
     data: {
       nickname,
       pinHash: await hashPin(parsed.data.password),
-      groupId: group.id,
+      memberships: group
+        ? {
+            create: {
+              groupId: group.id,
+            },
+          }
+        : undefined,
     },
   });
 
   await setSession(user.id);
-  return NextResponse.redirect(new URL("/", request.url));
+  return NextResponse.redirect(new URL(group ? `/g/${group.code}` : "/grupo", request.url));
 }

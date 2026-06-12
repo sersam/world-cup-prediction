@@ -10,7 +10,7 @@ const errorMessages: Record<string, string> = {
   datos: "Revisa el usuario y la contrasena. La contrasena debe tener al menos 4 caracteres.",
   password: "La contrasena no coincide con ese usuario.",
   pin: "La contrasena no coincide con ese usuario.",
-  "already-in-group": "Ese usuario ya pertenece a otro grupo.",
+  "already-member": "Ese usuario ya pertenece a este grupo.",
 };
 
 export default async function EnterPage({
@@ -19,13 +19,12 @@ export default async function EnterPage({
   searchParams?: Promise<{ code?: string; error?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (user?.groupId) redirect("/");
   const params = await searchParams;
-  if (!params?.code) redirect("/grupo");
+  if (user && !params?.code) redirect("/");
 
-  const code = normalizeGroupCode(params.code);
-  const group = await prisma.group.findUnique({ where: { code } });
-  if (!group) redirect("/grupo?error=no-existe");
+  const code = params?.code ? normalizeGroupCode(params.code) : null;
+  const group = code ? await prisma.group.findUnique({ where: { code } }) : null;
+  if (code && !group) redirect("/grupo?error=no-existe");
 
   const error = params?.error ? errorMessages[params.error] : null;
 
@@ -35,7 +34,9 @@ export default async function EnterPage({
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#147a45]">
           Mundial
         </p>
-        <h1 className="mt-3 text-3xl font-semibold">Entra en {group.name}</h1>
+        <h1 className="mt-3 text-3xl font-semibold">
+          {group ? `Entra en ${group.name}` : "Entra o crea tu usuario"}
+        </h1>
         <p className="mt-3 text-sm leading-6 text-[#526154]">
           El usuario es el nombre que aparecera en los rankings. La contrasena protege tus
           predicciones para que nadie pueda entrar con tu usuario y cambiarlas.
@@ -46,7 +47,7 @@ export default async function EnterPage({
           </p>
         ) : null}
         <form action="/api/auth/enter" className="mt-6 grid gap-4" method="post">
-          <input name="code" type="hidden" value={group.code} />
+          {group ? <input name="code" type="hidden" value={group.code} /> : null}
           <label className="grid gap-2 text-sm font-semibold">
             Usuario
             <input

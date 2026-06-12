@@ -64,6 +64,11 @@ export async function getCurrentUser() {
 
   return prisma.user.findUnique({
     where: { id: userId },
-    include: { group: true },
+    include: {
+      memberships: {
+        include: { group: true },
+        orderBy: { joinedAt: "asc" },
+      },
+    },
   });
 }

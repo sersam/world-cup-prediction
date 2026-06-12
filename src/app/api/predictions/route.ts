@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { calculatePredictionPoints } from "@/lib/scoring";
 
 const predictionSchema = z.object({
+  groupCode: z.string().min(3).max(24),
   matchId: z.string().min(1),
   predictedHome: z.coerce.number().int().min(0).max(99),
   predictedAway: z.coerce.number().int().min(0).max(99),
@@ -14,10 +15,10 @@ const predictionSchema = z.object({
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.redirect(new URL("/entrar", request.url));
-  if (!user.groupId) return NextResponse.redirect(new URL("/grupo", request.url));
 
   const formData = await request.formData();
   const parsed = predictionSchema.safeParse({
+    groupCode: formData.get("groupCode"),
     matchId: formData.get("matchId"),
     predictedHome: formData.get("predictedHome"),
     predictedAway: formData.get("predictedAway"),
@@ -27,12 +28,17 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/?error=prediccion", request.url));
   }
 
+  const membership = user.memberships.find(
+    (item) => item.group.code === parsed.data.groupCode.toUpperCase(),
+  );
+  if (!membership) return NextResponse.redirect(new URL("/grupo", request.url));
+
   const match = await prisma.match.findUnique({
     where: { id: parsed.data.matchId },
   });
 
   if (!match || !isPredictionOpen(match.utcDate)) {
-    return NextResponse.redirect(new URL("/?error=cerrado", request.url));
+    return NextResponse.redirect(new URL(`/g/${membership.group.code}?error=cerrado`, request.url));
   }
 
   const hasResult = match.finalHomeGoals !== null && match.finalAwayGoals !== null;
@@ -47,13 +53,13 @@ export async function POST(request: Request) {
     where: {
       userId_groupId_matchId: {
         userId: user.id,
-        groupId: user.groupId,
+        groupId: membership.groupId,
         matchId: match.id,
       },
     },
     create: {
       userId: user.id,
-      groupId: user.groupId,
+      groupId: membership.groupId,
       matchId: match.id,
       predictedHome: parsed.data.predictedHome,
       predictedAway: parsed.data.predictedAway,
@@ -68,5 +74,5 @@ export async function POST(request: Request) {
     },
   });
 
-  return NextResponse.redirect(new URL("/", request.url));
+  return NextResponse.redirect(new URL(`/g/${membership.group.code}`, request.url));
 }

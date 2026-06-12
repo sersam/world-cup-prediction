@@ -22,9 +22,8 @@ model User {
   nickname     String       @unique
   pinHash      String
   totalPoints  Int          @default(0)
-  groupId      String?
-  group        Group?       @relation("GroupMembers", fields: [groupId], references: [id])
   createdGroups Group[]     @relation("GroupCreator")
+  memberships  GroupMember[]
   predictions  Prediction[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -36,10 +35,21 @@ model Group {
   code        String       @unique
   creatorId   String
   creator     User         @relation("GroupCreator", fields: [creatorId], references: [id])
-  members     User[]       @relation("GroupMembers")
+  members     GroupMember[]
   predictions Prediction[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+}
+
+model GroupMember {
+  userId   String
+  groupId  String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+
+  @@id([userId, groupId])
+  @@index([groupId])
 }
 
 model Match {
