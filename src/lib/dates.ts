@@ -33,6 +33,19 @@ export function getTomorrowWindow(now = new Date(), timeZone = getAppTimezone())
   );
   const tomorrow = getMadridDateParts(localNoonUtc, timeZone);
 
+  return getLocalDayWindow(tomorrow, timeZone);
+}
+
+export function getTodayWindow(now = new Date(), timeZone = getAppTimezone()) {
+  return getLocalDayWindow(getMadridDateParts(now, timeZone), timeZone);
+}
+
+function getLocalDayWindow(
+  day: { year: number; month: number; day: number },
+  timeZone = getAppTimezone(),
+) {
+  const targetDay = day;
+
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
@@ -60,10 +73,10 @@ export function getTomorrowWindow(now = new Date(), timeZone = getAppTimezone())
   };
 
   const startGuess = new Date(
-    Date.UTC(tomorrow.year, tomorrow.month - 1, tomorrow.day, 0, 0, 0),
+    Date.UTC(targetDay.year, targetDay.month - 1, targetDay.day, 0, 0, 0),
   );
   const endGuess = new Date(
-    Date.UTC(tomorrow.year, tomorrow.month - 1, tomorrow.day + 1, 0, 0, 0),
+    Date.UTC(targetDay.year, targetDay.month - 1, targetDay.day + 1, 0, 0, 0),
   );
 
   return {

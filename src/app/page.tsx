@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
 import { getCurrentUser } from "@/lib/auth";
-import { formatMatchDate, getTomorrowWindow, isPredictionOpen } from "@/lib/dates";
+import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } from "@/lib/dates";
 import { flagFromTeamCode } from "@/lib/flags";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
@@ -63,15 +63,16 @@ export default async function Home() {
   if (!user) redirect("/entrar");
   if (!user.groupId) redirect("/grupo");
 
+  const today = getTodayWindow();
   const tomorrow = getTomorrowWindow();
-  const [groupUsers, tomorrowMatches, upcomingMatches, finishedMatches] = await Promise.all([
+  const [groupUsers, activeWindowMatches, upcomingMatches, finishedMatches] = await Promise.all([
     prisma.user.findMany({
       where: { groupId: user.groupId },
       include: { predictions: { where: { groupId: user.groupId } } },
     }),
     prisma.match.findMany({
       where: {
-        utcDate: { gte: tomorrow.start, lt: tomorrow.end },
+        utcDate: { gte: today.start, lt: tomorrow.end },
       },
       include: {
         predictions: {
@@ -115,7 +116,7 @@ export default async function Home() {
     }),
   ]);
 
-  const matches = tomorrowMatches.length > 0 ? tomorrowMatches : upcomingMatches;
+  const matches = activeWindowMatches.length > 0 ? activeWindowMatches : upcomingMatches;
   const topThree = buildRanking(groupUsers).slice(0, 3);
 
   return (
@@ -170,7 +171,7 @@ export default async function Home() {
           <div className="min-w-0 space-y-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-2xl font-semibold">
-                {tomorrowMatches.length > 0 ? "Partidos de manana" : "Proximos partidos"}
+                {activeWindowMatches.length > 0 ? "Partidos de hoy y manana" : "Proximos partidos"}
               </h2>
               <p className="text-sm text-[#526154]">
                 Puedes editar cada prediccion hasta el inicio del partido.
