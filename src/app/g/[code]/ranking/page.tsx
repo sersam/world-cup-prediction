@@ -6,6 +6,8 @@ import { buildRanking } from "@/lib/rankings";
 
 export const dynamic = "force-dynamic";
 
+const rankingMedals = ["🥇", "🥈", "🥉"] as const;
+
 export default async function GroupRankingPage({
   params,
 }: {
@@ -42,7 +44,9 @@ export default async function GroupRankingPage({
               className="grid grid-cols-[64px_1fr_96px] items-center border-b border-[#dfeadd] px-4 py-3 last:border-b-0"
               key={entry.id}
             >
-              <span className="font-mono text-sm text-[#526154]">#{index + 1}</span>
+              <span className="font-mono text-sm text-[#526154]">
+                {rankingMedals[index] ?? `#${index + 1}`}
+              </span>
               <span className="truncate font-semibold">{entry.nickname}</span>
               <span className="text-right font-bold text-[#147a45]">{entry.points} pts</span>
             </div>

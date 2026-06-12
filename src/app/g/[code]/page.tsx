@@ -59,6 +59,33 @@ function FlagBall({
   );
 }
 
+const podiumConfig = [
+  {
+    rank: 2,
+    medal: "🥈",
+    label: "Plata",
+    orderClass: "order-1",
+    cardClass: "pt-3",
+    stepClass: "h-10 bg-[#d8dde3] text-[#102015] md:h-14",
+  },
+  {
+    rank: 1,
+    medal: "🥇",
+    label: "Oro",
+    orderClass: "order-2",
+    cardClass: "pt-0",
+    stepClass: "h-14 bg-[#facc15] text-[#102015] md:h-20",
+  },
+  {
+    rank: 3,
+    medal: "🥉",
+    label: "Bronce",
+    orderClass: "order-3",
+    cardClass: "pt-5",
+    stepClass: "h-8 bg-[#c98f58] text-white md:h-11",
+  },
+] as const;
+
 export default async function GroupHome({
   params,
 }: {
@@ -156,21 +183,51 @@ export default async function GroupHome({
           </nav>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          {topThree.map((entry, index) => (
-            <article
-              className="glass-panel rounded-lg p-5 text-[#102015]"
-              key={entry.id}
-            >
-              <p className="text-sm font-semibold text-[#147a45]">Top {index + 1}</p>
-              <h2 className="mt-2 truncate text-2xl font-semibold">{entry.nickname}</h2>
-              <p className="mt-3 inline-flex rounded-md bg-[#102015] px-3 py-2 text-3xl font-bold text-[#facc15]">
-                {entry.points} pts
-              </p>
-            </article>
-          ))}
+        <section className="glass-panel rounded-lg p-3 text-[#102015] md:p-4">
+          {topThree.length > 0 ? (
+            <div className="grid grid-cols-3 items-end gap-2 md:gap-3">
+              {podiumConfig.map((slot) => {
+                const entry = topThree[slot.rank - 1];
+                if (!entry) return null;
+
+                return (
+                  <article
+                    className={`flex min-w-0 flex-col justify-end ${slot.orderClass} ${slot.cardClass} md:pt-0`}
+                    key={entry.id}
+                  >
+                    <div className="min-w-0 rounded-lg border border-[#dfeadd] bg-white/80 p-2 text-center shadow-sm md:p-3 md:text-left">
+                      <div className="flex items-center justify-center gap-1 md:justify-between md:gap-3">
+                        <span
+                          aria-label={`Medalla de ${slot.label}`}
+                          className="text-xl leading-none md:text-3xl"
+                        >
+                          {slot.medal}
+                        </span>
+                        <span className="rounded-full bg-[#edf5e9] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#147a45] md:px-2 md:py-1 md:text-xs">
+                          #{slot.rank}
+                        </span>
+                      </div>
+                      <div className="mt-1 min-w-0 md:mt-2">
+                        <h2 className="truncate text-xs font-semibold md:text-lg">
+                          {entry.nickname}
+                        </h2>
+                        <p className="text-xs font-bold text-[#147a45] md:text-sm">
+                          {entry.points} pts
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      className={`mt-1 flex items-center justify-center rounded-t-md px-2 text-sm font-black md:mt-2 md:px-3 md:text-lg ${slot.stepClass}`}
+                    >
+                      {slot.rank}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : null}
           {topThree.length === 0 ? (
-            <article className="glass-panel rounded-lg p-5 text-[#102015] md:col-span-3">
+            <article className="p-2 text-[#102015]">
               <h2 className="text-xl font-semibold">Todavia no hay puntuaciones</h2>
               <p className="mt-2 text-[#526154]">
                 Cuando se puntuen los primeros partidos, aparecera aqui el top 3.
@@ -375,9 +432,29 @@ export default async function GroupHome({
                 <dd className="font-semibold">{user.totalPoints}</dd>
               </div>
             </dl>
-            <p className="mt-5 rounded-md bg-[#edf5e9] p-3 text-sm text-[#526154]">
-              Resultado exacto: 10 puntos. Signo 1X2 correcto, empate incluido: 5 puntos.
-            </p>
+            <section className="mt-5 rounded-lg border border-[#c9ddc3] bg-[#edf5e9] p-3">
+              <h3 className="text-sm font-semibold text-[#102015]">Sistema de puntuacion</h3>
+              <div className="mt-3 grid gap-2">
+                <div className="flex items-center gap-3 rounded-md bg-white p-3">
+                  <span className="flex h-11 w-14 flex-none items-center justify-center rounded-md bg-[#102015] font-mono text-xl font-black text-[#facc15]">
+                    +10
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold">Resultado exacto</p>
+                    <p className="text-xs text-[#526154]">Marcador completo acertado.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 rounded-md bg-white p-3">
+                  <span className="flex h-11 w-14 flex-none items-center justify-center rounded-md bg-[#147a45] font-mono text-xl font-black text-white">
+                    +5
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold">Signo 1X2 correcto</p>
+                    <p className="text-xs text-[#526154]">Victoria, derrota o empate acertado.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
             <div className="mt-5 rounded-md border border-[#dfeadd] bg-white p-3">
               <h3 className="text-sm font-semibold">Comparte este link</h3>
               <p className="mt-1 text-xs leading-5 text-[#526154]">
