@@ -49,21 +49,33 @@ export default async function GroupRankingPage({
   });
 
   return (
-    <main className="pitch-bg pitch-lines min-h-screen px-5 py-8 text-[#151515]">
-      <section className="relative z-10 mx-auto w-full max-w-4xl">
-        <Link className="brand-link text-sm font-semibold" href={`/g/${group.code}`}>
-          Volver
-        </Link>
-        <div className="brand-lockup mt-4">
-          <span className="brand-logo" aria-hidden="true">
-            <Image alt="" height={650} priority src="/brand/world-cup-2026.webp" width={866} />
-          </span>
-          <div className="min-w-0">
-            <p className="brand-kicker text-sm font-semibold">Mundial 2026</p>
-            <h1 className="brand-heading mt-2 text-3xl">Ranking de {group.name}</h1>
+    <main className="pitch-bg pitch-lines min-h-screen text-[#151515]">
+      <section className="relative z-10 mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-8 px-4 py-6 sm:px-8">
+        <header className="brand-panel rounded-xl p-5 md:flex md:items-center md:justify-between">
+          <div className="brand-lockup min-w-0">
+            <span className="brand-logo" aria-hidden="true">
+              <Image
+                alt=""
+                height={650}
+                priority
+                src="/brand/world-cup-2026.webp"
+                width={866}
+              />
+            </span>
+            <div className="min-w-0">
+              <p className="brand-kicker text-sm font-semibold">{group.name}</p>
+              <h1 className="brand-heading-on-dark mt-2 text-3xl tracking-normal sm:text-5xl">
+                Ranking
+              </h1>
+              <div className="brand-rule mt-3" />
+            </div>
           </div>
-        </div>
-        <div className="brand-rule mt-5" />
+          <nav className="mt-5 flex flex-wrap gap-2 text-sm font-semibold md:mt-0">
+            <Link className="brand-button-gold rounded-md px-4 py-2" href={`/g/${group.code}`}>
+              &lt; Volver
+            </Link>
+          </nav>
+        </header>
         <div className="ranking-list glass-panel mt-6 overflow-visible rounded-lg text-[#151515]">
           {ranking.map((entry, index) => (
             <div
