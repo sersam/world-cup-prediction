@@ -8,7 +8,7 @@ const ranking = [
 ];
 
 describe("buildUserBadges", () => {
-  it("awards exact and debut badges", () => {
+  it("awards exact badge", () => {
     const badges = buildUserBadges(
       {
         id: "1",
@@ -17,7 +17,7 @@ describe("buildUserBadges", () => {
       { ranking },
     );
 
-    expect(badges.map((badge) => badge.id)).toEqual(["exact", "debut"]);
+    expect(badges.map((badge) => badge.id)).toEqual(["exact"]);
   });
 
   it("awards hunter when a user is close to the leader", () => {
@@ -32,7 +32,7 @@ describe("buildUserBadges", () => {
     expect(badges.map((badge) => badge.id)).toContain("hunter");
   });
 
-  it("awards streak for three scoring predictions in match order", () => {
+  it("awards streak x3 for three scoring predictions in match order", () => {
     const badges = buildUserBadges(
       {
         id: "3",
@@ -45,21 +45,29 @@ describe("buildUserBadges", () => {
       { ranking },
     );
 
-    expect(badges.map((badge) => badge.id)).toContain("streak");
+    expect(badges.map((badge) => badge.id)).toContain("streak3");
   });
 
-  it("awards complete when every target match has a prediction", () => {
+  it("awards streak tiers for five and ten scoring predictions", () => {
+    const predictions = Array.from({ length: 10 }, (_, index) => ({
+      points: index === 0 ? 10 : 5,
+      matchId: String(index),
+      match: { utcDate: new Date(Date.UTC(2026, 5, index + 1, 12)) },
+    }));
+
     const badges = buildUserBadges(
       {
         id: "3",
-        predictions: [
-          { points: 0, matchId: "a" },
-          { points: 0, matchId: "b" },
-        ],
+        predictions,
       },
-      { ranking, targetMatchIds: ["a", "b"] },
+      { ranking },
     );
 
-    expect(badges.map((badge) => badge.id)).toContain("complete");
+    expect(badges.map((badge) => badge.id)).toEqual([
+      "exact",
+      "streak10",
+      "streak5",
+      "streak3",
+    ]);
   });
 });

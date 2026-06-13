@@ -187,7 +187,6 @@ export default async function GroupHome({
   const ranking = buildRanking(groupUsers);
   const groupBadges = buildGroupBadges(groupUsers, {
     ranking,
-    targetMatchIds: matches.map((match) => match.id),
   });
   const currentUserBadges = groupBadges.get(user.id) ?? [];
 

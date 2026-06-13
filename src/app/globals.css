@@ -292,6 +292,41 @@ a:hover {
   width: 0.95rem;
 }
 
+.badge-chip .badge-streak-3 {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.badge-chip .badge-streak-5 {
+  height: 1.1rem;
+  width: 1.1rem;
+}
+
+.badge-chip .badge-streak-10 {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.badge-chip-compact .badge-streak-3 {
+  height: 0.82rem;
+  width: 0.82rem;
+}
+
+.badge-chip-compact .badge-streak-5 {
+  height: 0.98rem;
+  width: 0.98rem;
+}
+
+.badge-chip-compact .badge-streak-10 {
+  height: 1.12rem;
+  width: 1.12rem;
+}
+
+.badge-streak-inner {
+  opacity: 0.72;
+  stroke-width: 1.7;
+}
+
 .badge-chip:focus-visible {
   outline: 2px solid rgba(3, 78, 162, 0.34);
   outline-offset: 2px;

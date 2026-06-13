@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { BadgeList } from "@/app/_components/badges";
 import { getCurrentUser } from "@/lib/auth";
 import { buildGroupBadges } from "@/lib/badges";
-import { getTodayWindow, getTomorrowWindow } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
 
@@ -25,47 +24,28 @@ export default async function GroupRankingPage({
   )?.group;
   if (!group) redirect("/grupo");
 
-  const today = getTodayWindow();
-  const tomorrow = getTomorrowWindow();
-  const [users, activeWindowMatches, upcomingMatches] = await Promise.all([
-    prisma.user.findMany({
-      where: {
-        memberships: {
-          some: { groupId: group.id },
-        },
+  const users = await prisma.user.findMany({
+    where: {
+      memberships: {
+        some: { groupId: group.id },
       },
-      include: {
-        predictions: {
-          where: { groupId: group.id },
-          include: {
-            match: {
-              select: {
-                utcDate: true,
-              },
+    },
+    include: {
+      predictions: {
+        where: { groupId: group.id },
+        include: {
+          match: {
+            select: {
+              utcDate: true,
             },
           },
         },
       },
-    }),
-    prisma.match.findMany({
-      where: {
-        utcDate: { gte: today.start, lt: tomorrow.end },
-      },
-      orderBy: { utcDate: "asc" },
-    }),
-    prisma.match.findMany({
-      where: {
-        utcDate: { gte: new Date() },
-      },
-      orderBy: { utcDate: "asc" },
-      take: 12,
-    }),
-  ]);
+    },
+  });
   const ranking = buildRanking(users);
-  const visibleMatches = activeWindowMatches.length > 0 ? activeWindowMatches : upcomingMatches;
   const groupBadges = buildGroupBadges(users, {
     ranking,
-    targetMatchIds: visibleMatches.map((match) => match.id),
   });
 
   return (

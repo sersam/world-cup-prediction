@@ -1,13 +1,13 @@
 import type { RankingEntry } from "@/lib/scoring";
 
-export type BadgeId = "hunter" | "exact" | "streak" | "complete" | "debut";
+export type BadgeId = "hunter" | "exact" | "streak3" | "streak5" | "streak10";
 
 export type Badge = {
   id: BadgeId;
-  icon: "bolt" | "target" | "flame" | "checklist" | "pencil";
+  icon: "bolt" | "target" | "flame3" | "flame5" | "flame10";
   label: string;
   description: string;
-  tone: "blue" | "green" | "red" | "dark" | "cream";
+  tone: "blue" | "green" | "red" | "gold" | "dark";
 };
 
 type BadgePrediction = {
@@ -25,7 +25,6 @@ type BadgeUser = {
 
 type BadgeContext = {
   ranking: RankingEntry[];
-  targetMatchIds?: string[];
 };
 
 const badgeDefinitions: Record<BadgeId, Badge> = {
@@ -43,26 +42,26 @@ const badgeDefinitions: Record<BadgeId, Badge> = {
     description: "Ha acertado un marcador exacto.",
     tone: "green",
   },
-  streak: {
-    id: "streak",
-    icon: "flame",
+  streak3: {
+    id: "streak3",
+    icon: "flame3",
     label: "Racha x3",
     description: "Ha puntuado en 3 partidos seguidos.",
+    tone: "blue",
+  },
+  streak5: {
+    id: "streak5",
+    icon: "flame5",
+    label: "Racha x5",
+    description: "Ha puntuado en 5 partidos seguidos.",
     tone: "red",
   },
-  complete: {
-    id: "complete",
-    icon: "checklist",
-    label: "Completo",
-    description: "Tiene guardadas todas las predicciones visibles.",
-    tone: "dark",
-  },
-  debut: {
-    id: "debut",
-    icon: "pencil",
-    label: "Debut",
-    description: "Ya hizo su primera prediccion.",
-    tone: "cream",
+  streak10: {
+    id: "streak10",
+    icon: "flame10",
+    label: "Racha x10",
+    description: "Ha puntuado en 10 partidos seguidos.",
+    tone: "gold",
   },
 };
 
@@ -77,18 +76,6 @@ function longestScoringStreak(predictions: BadgePrediction[]) {
       },
       { current: 0, best: 0 },
     ).best;
-}
-
-function hasCompletedTargets(user: BadgeUser, targetMatchIds: string[]) {
-  if (targetMatchIds.length === 0) return false;
-
-  const predictedMatchIds = new Set(
-    user.predictions
-      .map((prediction) => prediction.matchId)
-      .filter((matchId): matchId is string => Boolean(matchId)),
-  );
-
-  return targetMatchIds.every((matchId) => predictedMatchIds.has(matchId));
 }
 
 export function buildUserBadges(user: BadgeUser, context: BadgeContext): Badge[] {
@@ -111,16 +98,18 @@ export function buildUserBadges(user: BadgeUser, context: BadgeContext): Badge[]
     badges.push(badgeDefinitions.exact);
   }
 
-  if (longestScoringStreak(user.predictions) >= 3) {
-    badges.push(badgeDefinitions.streak);
+  const scoringStreak = longestScoringStreak(user.predictions);
+
+  if (scoringStreak >= 10) {
+    badges.push(badgeDefinitions.streak10);
   }
 
-  if (hasCompletedTargets(user, context.targetMatchIds ?? [])) {
-    badges.push(badgeDefinitions.complete);
+  if (scoringStreak >= 5) {
+    badges.push(badgeDefinitions.streak5);
   }
 
-  if (user.predictions.length > 0) {
-    badges.push(badgeDefinitions.debut);
+  if (scoringStreak >= 3) {
+    badges.push(badgeDefinitions.streak3);
   }
 
   return badges;

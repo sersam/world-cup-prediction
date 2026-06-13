@@ -19,33 +19,32 @@ function BadgeSvg({ icon }: { icon: Badge["icon"] }) {
     );
   }
 
-  if (icon === "flame") {
+  if (icon === "flame3" || icon === "flame5" || icon === "flame10") {
+    const streakNumber = icon.replace("flame", "");
+    const flamePath =
+      icon === "flame10"
+        ? "M12 1.5c3.5 3.8 6.2 7.2 6.2 12.1a6.2 6.2 0 0 1-12.4 0c0-3.1 1.8-5.5 4.2-7.8 1.7-1.6 2.4-3 2-4.3Z"
+        : icon === "flame5"
+          ? "M12.7 2.6c2.4 3 4.5 5.6 4.5 9.5a5.2 5.2 0 0 1-10.4 0c0-2.6 1.5-4.7 3.5-6.5 1.3-1.3 2-2.3 2.4-3Z"
+          : "M12.6 3.6c2 2.4 3.8 4.8 3.8 8.1a4.5 4.5 0 0 1-9 0c0-2.2 1.3-4 3-5.6 1.1-1 1.7-1.9 2.2-2.5Z";
+    const innerFlamePath =
+      icon === "flame10"
+        ? "M13.9 9.5c.6 2.4-1.5 3.7-1.5 3.7s-1-1.5.3-3.8c-2.1 1.5-3.2 3.1-3.2 5.4a2.7 2.7 0 0 0 5.4 0c0-1.8-.5-3.4-1-5.3Z"
+        : icon === "flame5"
+          ? "M13.4 10.2c.3 1.9-1.2 2.9-1.2 2.9s-.8-1.2.2-3c-1.5 1.2-2.3 2.4-2.3 4.1a2.1 2.1 0 0 0 4.2 0c0-1.4-.4-2.6-.9-4Z"
+          : "M13 10.8c.2 1.5-1 2.3-1 2.3s-.6-1 .2-2.4c-1.2 1-1.9 2-1.9 3.3a1.8 1.8 0 0 0 3.6 0c0-1.1-.3-2.1-.9-3.2Z";
+
     return (
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <path d="M13 2s1 4-2 7c-2 2-4 4-4 7a5 5 0 0 0 10 0c0-2-1-4-3-6 0 3-2 4-2 4s-1-2 1-5c1-2 1-5 0-7Z" />
+      <svg
+        aria-hidden="true"
+        className={`badge-streak-icon badge-streak-${streakNumber}`}
+        viewBox="0 0 24 24"
+      >
+        <path d={flamePath} />
+        <path className="badge-streak-inner" d={innerFlamePath} />
       </svg>
     );
   }
-
-  if (icon === "checklist") {
-    return (
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <path d="M8 6h12" />
-        <path d="M8 12h12" />
-        <path d="M8 18h12" />
-        <path d="m3 6 1 1 2-3" />
-        <path d="m3 12 1 1 2-3" />
-        <path d="m3 18 1 1 2-3" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      <path d="m4 20 4-1 11-11a2.8 2.8 0 0 0-4-4L4 15l-1 4a1 1 0 0 0 1 1Z" />
-      <path d="m13 6 5 5" />
-    </svg>
-  );
 }
 
 export function BadgePill({ badge, compact = false }: { badge: Badge; compact?: boolean }) {
