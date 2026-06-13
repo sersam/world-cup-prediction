@@ -283,6 +283,54 @@ a:hover {
   color: var(--wc-gold);
 }
 
+.phase-pill {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e7dcc6;
+  border-radius: 999px;
+  color: var(--wc-ink);
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 0.45rem;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.phase-pill-active {
+  background: var(--wc-blue);
+  border-color: var(--wc-blue);
+  color: #ffffff;
+}
+
+.phase-pill-disabled {
+  background: rgba(255, 255, 255, 0.58);
+  color: rgba(21, 21, 21, 0.42);
+  cursor: not-allowed;
+}
+
+.phase-pill-count {
+  align-items: center;
+  background: rgba(21, 21, 21, 0.08);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.72rem;
+  justify-content: center;
+  min-width: 1.35rem;
+  padding: 0.1rem 0.35rem;
+}
+
+.phase-pill-active .phase-pill-count {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.phase-pill-disabled .phase-pill-count {
+  background: rgba(21, 21, 21, 0.08);
+  color: rgba(21, 21, 21, 0.48);
+}
+
 .badge-chip {
   align-items: center;
   appearance: none;

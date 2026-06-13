@@ -123,14 +123,46 @@ const podiumConfig = [
   },
 ] as const;
 
+const stageOrder = [
+  "GROUP_STAGE",
+  "LAST_32",
+  "LAST_16",
+  "QUARTER_FINALS",
+  "SEMI_FINALS",
+  "THIRD_PLACE",
+  "FINAL",
+] as const;
+
+const stageLabels: Record<string, string> = {
+  GROUP_STAGE: "Fase de grupos",
+  LAST_32: "Dieciseisavos",
+  LAST_16: "Octavos",
+  QUARTER_FINALS: "Cuartos",
+  SEMI_FINALS: "Semifinales",
+  THIRD_PLACE: "Tercer puesto",
+  FINAL: "Final",
+};
+
+function stageLabel(stage?: string | null) {
+  if (!stage) return "Sin fase";
+  return stageLabels[stage] ?? stage.replaceAll("_", " ").toLowerCase();
+}
+
 export default async function GroupHome({
   params,
+  searchParams,
 }: {
   params: Promise<{ code: string }>;
+  searchParams?: Promise<{ fase?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/entrar");
   const { code } = await params;
+  const query = await searchParams;
+  const requestedStage = query?.fase?.trim().toUpperCase();
+  const selectedStage = requestedStage && stageOrder.includes(requestedStage as (typeof stageOrder)[number])
+    ? requestedStage
+    : null;
   const group = user.memberships.find(
     (membership) => membership.group.code === code.toUpperCase(),
   )?.group;
@@ -143,7 +175,15 @@ export default async function GroupHome({
 
   const today = getTodayWindow();
   const tomorrow = getTomorrowWindow();
-  const [groupUsers, activeWindowMatches, upcomingMatches, finishedMatches] = await Promise.all([
+  const [
+    groupUsers,
+    activeWindowMatches,
+    upcomingMatches,
+    phaseMatches,
+    finishedMatches,
+    stageCounts,
+    stageReadinessMatches,
+  ] = await Promise.all([
     prisma.user.findMany({
       where: {
         memberships: {
@@ -192,6 +232,22 @@ export default async function GroupHome({
       orderBy: { utcDate: "asc" },
       take: 12,
     }),
+    selectedStage
+      ? prisma.match.findMany({
+          where: {
+            stage: selectedStage,
+          },
+          include: {
+            predictions: {
+              where: {
+                userId: user.id,
+                groupId: group.id,
+              },
+            },
+          },
+          orderBy: { utcDate: "asc" },
+        })
+      : Promise.resolve([]),
     prisma.match.findMany({
       where: {
         status: MatchStatus.FINISHED,
@@ -207,9 +263,56 @@ export default async function GroupHome({
       orderBy: { utcDate: "desc" },
       take: 24,
     }),
+    prisma.match.groupBy({
+      by: ["stage"],
+      _count: { _all: true },
+      where: {
+        stage: { not: null },
+      },
+    }),
+    prisma.match.findMany({
+      where: {
+        stage: { not: null },
+      },
+      select: {
+        awayTeamCode: true,
+        homeTeamCode: true,
+        stage: true,
+      },
+    }),
   ]);
 
-  const matches = activeWindowMatches.length > 0 ? activeWindowMatches : upcomingMatches;
+  const stageCountByName = new Map(
+    stageCounts
+      .filter((entry) => entry.stage)
+      .map((entry) => [entry.stage!, entry._count._all]),
+  );
+  const stageConfirmedCountByName = new Map<string, number>();
+  for (const match of stageReadinessMatches) {
+    if (!match.stage || !match.homeTeamCode || !match.awayTeamCode) continue;
+    stageConfirmedCountByName.set(
+      match.stage,
+      (stageConfirmedCountByName.get(match.stage) ?? 0) + 1,
+    );
+  }
+  const stageFilters = stageOrder
+    .filter((stage) => stageCountByName.has(stage))
+    .map((stage) => {
+      const count = stageCountByName.get(stage) ?? 0;
+      const confirmedCount = stageConfirmedCountByName.get(stage) ?? 0;
+      const disabled = confirmedCount < count;
+
+      return {
+        confirmedCount,
+        count,
+        disabled,
+        href: `/g/${group.code}?fase=${stage}`,
+        label: stageLabel(stage),
+        stage,
+      };
+    });
+  const defaultMatches = activeWindowMatches.length > 0 ? activeWindowMatches : upcomingMatches;
+  const matches = selectedStage ? phaseMatches : defaultMatches;
   const topThree = buildRanking(groupUsers).slice(0, 3);
   const ranking = buildRanking(groupUsers);
   const groupBadges = buildGroupBadges(groupUsers, {
@@ -306,12 +409,52 @@ export default async function GroupHome({
 
         <section className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0 space-y-4">
+            <nav className="glass-panel rounded-lg p-3" aria-label="Filtrar partidos por fase">
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                <Link
+                  className={`phase-pill ${selectedStage ? "" : "phase-pill-active"}`}
+                  href={`/g/${group.code}`}
+                >
+                  Actualidad
+                </Link>
+                {stageFilters.map((filter) =>
+                  filter.disabled ? (
+                    <span
+                      aria-disabled="true"
+                      className="phase-pill phase-pill-disabled"
+                      key={filter.stage}
+                      title="Disponible cuando los equipos esten confirmados"
+                    >
+                      <span>{filter.label}</span>
+                      <span className="phase-pill-count">
+                        {filter.confirmedCount}/{filter.count}
+                      </span>
+                    </span>
+                  ) : (
+                    <Link
+                      className={`phase-pill ${selectedStage === filter.stage ? "phase-pill-active" : ""}`}
+                      href={filter.href}
+                      key={filter.stage}
+                    >
+                      <span>{filter.label}</span>
+                      <span className="phase-pill-count">{filter.count}</span>
+                    </Link>
+                  ),
+                )}
+              </div>
+            </nav>
             <div className="flex flex-col gap-1">
               <h2 className="text-2xl font-semibold">
-                {activeWindowMatches.length > 0 ? "Partidos de hoy y manana" : "Proximos partidos"}
+                {selectedStage
+                  ? stageLabel(selectedStage)
+                  : activeWindowMatches.length > 0
+                    ? "Partidos de hoy y manana"
+                    : "Proximos partidos"}
               </h2>
               <p className="text-sm text-[#5d615f]">
-                Puedes editar cada prediccion hasta el inicio del partido.
+                {selectedStage
+                  ? "Explora los partidos de esta fase y revisa tus predicciones."
+                  : "Puedes editar cada prediccion hasta el inicio del partido."}
               </p>
             </div>
 
