@@ -1,10 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
 import { getCurrentUser } from "@/lib/auth";
 import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } from "@/lib/dates";
-import { flagFromTeamCode } from "@/lib/flags";
+import { flagFromTeamCode, flagImageSrcFromTeamCode } from "@/lib/flags";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
 
@@ -47,6 +48,7 @@ function FlagBall({
   small?: boolean;
 }) {
   const flag = flagFromTeamCode(code);
+  const flagImageSrc = flagImageSrcFromTeamCode(code);
 
   return (
     <span
@@ -54,7 +56,13 @@ function FlagBall({
       className={`flag-ball ${small ? "flag-ball-sm" : ""}`}
       title={label}
     >
-      {flag || "•"}
+      {flagImageSrc ? (
+        <Image alt="" aria-hidden="true" className="flag-ball-img" fill src={flagImageSrc} />
+      ) : (
+        <span className="flag-ball-fill" aria-hidden="true">
+          {flag || "•"}
+        </span>
+      )}
     </span>
   );
 }
@@ -66,7 +74,7 @@ const podiumConfig = [
     label: "Plata",
     orderClass: "order-1",
     cardClass: "pt-3",
-    stepClass: "h-10 bg-[#d8dde3] text-[#102015] md:h-14",
+    stepClass: "h-10 bg-[#d8dde3] text-[#151515] md:h-14",
   },
   {
     rank: 1,
@@ -74,7 +82,7 @@ const podiumConfig = [
     label: "Oro",
     orderClass: "order-2",
     cardClass: "pt-0",
-    stepClass: "h-14 bg-[#facc15] text-[#102015] md:h-20",
+    stepClass: "h-14 bg-[#f2b705] text-[#151515] md:h-20",
   },
   {
     rank: 3,
@@ -165,25 +173,35 @@ export default async function GroupHome({
   const topThree = buildRanking(groupUsers).slice(0, 3);
 
   return (
-    <main className="pitch-bg pitch-lines min-h-screen text-[#102015]">
+    <main className="pitch-bg pitch-lines min-h-screen text-[#151515]">
       <section className="relative z-10 mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-8 px-4 py-6 sm:px-8">
-        <header className="glass-panel rounded-xl p-5 md:flex md:items-center md:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#147a45]">
-              {group.name}
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-normal sm:text-5xl">
-              Predicciones del Mundial
-            </h1>
+        <header className="brand-panel rounded-xl p-5 md:flex md:items-center md:justify-between">
+          <div className="brand-lockup min-w-0">
+            <span className="brand-logo" aria-hidden="true">
+              <Image
+                alt=""
+                height={650}
+                priority
+                src="/brand/world-cup-2026.webp"
+                width={866}
+              />
+            </span>
+            <div className="min-w-0">
+              <p className="brand-kicker text-sm font-semibold">{group.name}</p>
+              <h1 className="brand-heading-on-dark mt-2 text-3xl tracking-normal sm:text-5xl">
+                Predicciones del Mundial
+              </h1>
+              <div className="brand-rule mt-3" />
+            </div>
           </div>
-          <nav className="mt-4 flex flex-wrap gap-2 text-sm font-semibold md:mt-0">
-            <Link className="rounded-md bg-[#facc15] px-4 py-2 text-[#102015]" href={`/g/${group.code}/ranking`}>
+          <nav className="mt-5 flex flex-wrap gap-2 text-sm font-semibold md:mt-0">
+            <Link className="brand-button-gold rounded-md px-4 py-2" href={`/g/${group.code}/ranking`}>
               Ranking
             </Link>
           </nav>
         </header>
 
-        <section className="glass-panel rounded-lg p-3 text-[#102015] md:p-4">
+        <section className="glass-panel rounded-lg p-3 text-[#151515] md:p-4">
           {topThree.length > 0 ? (
             <div className="grid grid-cols-3 items-end gap-2 md:gap-3">
               {podiumConfig.map((slot) => {
@@ -195,7 +213,7 @@ export default async function GroupHome({
                     className={`flex min-w-0 flex-col justify-end ${slot.orderClass} ${slot.cardClass} md:pt-0`}
                     key={entry.id}
                   >
-                    <div className="min-w-0 rounded-lg border border-[#dfeadd] bg-white/80 p-2 text-center shadow-sm md:p-3 md:text-left">
+                    <div className="min-w-0 rounded-lg border border-[#e7dcc6] bg-white/80 p-2 text-center shadow-sm md:p-3 md:text-left">
                       <div className="flex items-center justify-center gap-1 md:justify-between md:gap-3">
                         <span
                           aria-label={`Medalla de ${slot.label}`}
@@ -203,7 +221,7 @@ export default async function GroupHome({
                         >
                           {slot.medal}
                         </span>
-                        <span className="rounded-full bg-[#edf5e9] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#147a45] md:px-2 md:py-1 md:text-xs">
+                        <span className="rounded-full bg-[#fff4d6] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#007a3d] md:px-2 md:py-1 md:text-xs">
                           #{slot.rank}
                         </span>
                       </div>
@@ -211,7 +229,7 @@ export default async function GroupHome({
                         <h2 className="truncate text-xs font-semibold md:text-lg">
                           {entry.nickname}
                         </h2>
-                        <p className="text-xs font-bold text-[#147a45] md:text-sm">
+                        <p className="text-xs font-bold text-[#007a3d] md:text-sm">
                           {entry.points} pts
                         </p>
                       </div>
@@ -227,9 +245,9 @@ export default async function GroupHome({
             </div>
           ) : null}
           {topThree.length === 0 ? (
-            <article className="p-2 text-[#102015]">
+            <article className="p-2 text-[#151515]">
               <h2 className="text-xl font-semibold">Todavia no hay puntuaciones</h2>
-              <p className="mt-2 text-[#526154]">
+              <p className="mt-2 text-[#5d615f]">
                 Cuando se puntuen los primeros partidos, aparecera aqui el top 3.
               </p>
             </article>
@@ -242,25 +260,25 @@ export default async function GroupHome({
               <h2 className="text-2xl font-semibold">
                 {activeWindowMatches.length > 0 ? "Partidos de hoy y manana" : "Proximos partidos"}
               </h2>
-              <p className="text-sm text-[#526154]">
+              <p className="text-sm text-[#5d615f]">
                 Puedes editar cada prediccion hasta el inicio del partido.
               </p>
             </div>
 
             {matches.length === 0 ? (
-              <div className="glass-panel rounded-lg p-6 text-[#102015]">
+              <div className="glass-panel rounded-lg p-6 text-[#151515]">
                 <h3 className="text-lg font-semibold">
                   {finishedMatches.length > 0
                     ? "No hay proximos partidos"
                     : "No hay partidos sincronizados"}
                 </h3>
                 {finishedMatches.length > 0 ? (
-                  <p className="mt-2 text-[#526154]">
+                  <p className="mt-2 text-[#5d615f]">
                     La sincronizacion actual solo tiene partidos finalizados. Puedes revisarlos en
                     el historico.
                   </p>
                 ) : (
-                  <p className="mt-2 text-[#526154]">
+                  <p className="mt-2 text-[#5d615f]">
                     Configura `FOOTBALL_DATA_API_TOKEN` y ejecuta `POST /api/sync` para cargar el
                     calendario del Mundial.
                   </p>
@@ -275,24 +293,24 @@ export default async function GroupHome({
 
                   return (
                     <article
-                      className="match-card min-w-0 rounded-lg p-4 text-[#102015]"
+                      className="match-card min-w-0 rounded-lg p-4 text-[#151515]"
                       key={match.id}
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-[#526154]">
+                          <p className="text-sm font-medium text-[#5d615f]">
                             {formatMatchDate(match.utcDate)}
                           </p>
                           <h3 className="mt-2 flex min-w-0 flex-wrap items-center gap-2 text-xl font-semibold">
                             <FlagBall code={match.homeTeamCode} label={match.homeTeam} small />
                             <span className="min-w-0 break-words">{match.homeTeam}</span>
-                            <span className="rounded-full bg-[#e7efe3] px-2 py-1 text-xs font-bold text-[#147a45]">
+                            <span className="rounded-full bg-[#eaf1ff] px-2 py-1 text-xs font-bold text-[#007a3d]">
                               vs
                             </span>
                             <FlagBall code={match.awayTeamCode} label={match.awayTeam} small />
                             <span className="min-w-0 break-words">{match.awayTeam}</span>
                           </h3>
-                          <p className="mt-2 text-sm font-semibold text-[#147a45]">
+                          <p className="mt-2 text-sm font-semibold text-[#007a3d]">
                             {resultText(match)}
                           </p>
                         </div>
@@ -304,12 +322,12 @@ export default async function GroupHome({
                         >
                           <input name="matchId" type="hidden" value={match.id} />
                           <input name="groupCode" type="hidden" value={group.code} />
-                          <label className="grid gap-1 text-xs font-semibold uppercase text-[#526154]">
+                          <label className="grid gap-1 text-xs font-semibold uppercase text-[#5d615f]">
                             <span>Local</span>
                             <span className="flex min-w-0 items-center gap-2">
                               <FlagBall code={match.homeTeamCode} label={match.homeTeam} />
                               <input
-                                className="h-11 w-16 rounded-md border border-[#bad0b6] bg-white px-3 text-center text-base font-bold"
+                                className="h-11 w-16 rounded-md border border-[#d6c7aa] bg-white px-3 text-center text-base font-bold"
                                 defaultValue={
                                   prediction?.predictedHome ?? (missingClosedPrediction ? "-" : "")
                                 }
@@ -321,12 +339,12 @@ export default async function GroupHome({
                               />
                             </span>
                           </label>
-                          <label className="grid gap-1 text-xs font-semibold uppercase text-[#526154]">
+                          <label className="grid gap-1 text-xs font-semibold uppercase text-[#5d615f]">
                             <span>Visit.</span>
                             <span className="flex min-w-0 items-center gap-2">
                               <FlagBall code={match.awayTeamCode} label={match.awayTeam} />
                               <input
-                                className="h-11 w-16 rounded-md border border-[#bad0b6] bg-white px-3 text-center text-base font-bold"
+                                className="h-11 w-16 rounded-md border border-[#d6c7aa] bg-white px-3 text-center text-base font-bold"
                                 defaultValue={
                                   prediction?.predictedAway ?? (missingClosedPrediction ? "-" : "")
                                 }
@@ -339,7 +357,7 @@ export default async function GroupHome({
                             </span>
                           </label>
                           <button
-                            className="col-span-2 h-11 rounded-md bg-[#147a45] px-4 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:bg-[#9aaa92] md:col-span-1"
+                            className="col-span-2 h-11 rounded-md bg-[#007a3d] px-4 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:bg-[#a7aaa7] md:col-span-1"
                             disabled={!open}
                             type="submit"
                           >
@@ -347,7 +365,7 @@ export default async function GroupHome({
                           </button>
                         </form>
                       </div>
-                      <p className="mt-3 min-w-0 rounded-md bg-[#edf5e9] px-3 py-2 text-sm text-[#526154]">
+                      <p className="mt-3 min-w-0 rounded-md bg-[#fff4d6] px-3 py-2 text-sm text-[#5d615f]">
                         Tu prediccion:{" "}
                         <span className="font-semibold text-[#1d1b16]">
                           {predictionText(prediction)}
@@ -362,15 +380,15 @@ export default async function GroupHome({
             <section className="pt-6">
               <div className="flex flex-col gap-1">
                 <h2 className="text-2xl font-semibold">Historico de partidos</h2>
-                <p className="text-sm text-[#526154]">
+                <p className="text-sm text-[#5d615f]">
                   Resultados finales y tu prediccion en este grupo.
                 </p>
               </div>
 
               {finishedMatches.length === 0 ? (
-                <div className="glass-panel mt-4 rounded-lg p-6 text-[#102015]">
+                <div className="glass-panel mt-4 rounded-lg p-6 text-[#151515]">
                   <h3 className="text-lg font-semibold">Todavia no hay partidos finalizados</h3>
-                  <p className="mt-2 text-[#526154]">
+                  <p className="mt-2 text-[#5d615f]">
                     Cuando la API marque partidos como finalizados, apareceran aqui con su
                     resultado.
                   </p>
@@ -382,27 +400,27 @@ export default async function GroupHome({
 
                     return (
                       <article
-                        className="match-card min-w-0 rounded-lg p-4 text-[#102015]"
+                        className="match-card min-w-0 rounded-lg p-4 text-[#151515]"
                         key={match.id}
                       >
-                        <p className="text-sm font-medium text-[#526154]">
+                        <p className="text-sm font-medium text-[#5d615f]">
                           {formatMatchDate(match.utcDate)}
                         </p>
                         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <h3 className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-semibold">
                             <FlagBall code={match.homeTeamCode} label={match.homeTeam} small />
                             <span className="min-w-0 break-words">{match.homeTeam}</span>
-                            <span className="rounded-full bg-[#e7efe3] px-2 py-1 text-xs font-bold text-[#147a45]">
+                            <span className="rounded-full bg-[#eaf1ff] px-2 py-1 text-xs font-bold text-[#007a3d]">
                               vs
                             </span>
                             <FlagBall code={match.awayTeamCode} label={match.awayTeam} small />
                             <span className="min-w-0 break-words">{match.awayTeam}</span>
                           </h3>
-                          <p className="rounded-md bg-[#102015] px-3 py-2 text-center font-mono text-lg font-bold text-[#facc15]">
+                          <p className="rounded-md bg-[#151515] px-3 py-2 text-center font-mono text-lg font-bold text-[#f2b705]">
                             {resultText(match)}
                           </p>
                         </div>
-                        <p className="mt-3 min-w-0 rounded-md bg-[#edf5e9] px-3 py-2 text-sm text-[#526154]">
+                        <p className="mt-3 min-w-0 rounded-md bg-[#fff4d6] px-3 py-2 text-sm text-[#5d615f]">
                           Tu prediccion:{" "}
                           <span className="font-semibold text-[#1d1b16]">
                             {predictionText(prediction)}
@@ -416,66 +434,66 @@ export default async function GroupHome({
             </section>
           </div>
 
-          <aside className="glass-panel min-w-0 rounded-lg p-5 text-[#102015]">
+          <aside className="glass-panel min-w-0 rounded-lg p-5 text-[#151515]">
             <h2 className="text-xl font-semibold">Tu marcador</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex justify-between gap-4">
-                <dt className="text-[#526154]">Usuario</dt>
+                <dt className="text-[#5d615f]">Usuario</dt>
                 <dd className="font-semibold">{user.nickname}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-[#526154]">Codigo grupo</dt>
+                <dt className="text-[#5d615f]">Codigo grupo</dt>
                 <dd className="font-mono font-semibold">{group.code}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-[#526154]">Puntos globales</dt>
+                <dt className="text-[#5d615f]">Puntos globales</dt>
                 <dd className="font-semibold">{user.totalPoints}</dd>
               </div>
             </dl>
-            <section className="mt-5 rounded-lg border border-[#c9ddc3] bg-[#edf5e9] p-3">
-              <h3 className="text-sm font-semibold text-[#102015]">Sistema de puntuacion</h3>
+            <section className="mt-5 rounded-lg border border-[#e7dcc6] bg-[#fff4d6] p-3">
+              <h3 className="text-sm font-semibold text-[#151515]">Sistema de puntuacion</h3>
               <div className="mt-3 grid gap-2">
                 <div className="flex items-center gap-3 rounded-md bg-white p-3">
-                  <span className="flex h-11 w-14 flex-none items-center justify-center rounded-md bg-[#102015] font-mono text-xl font-black text-[#facc15]">
+                  <span className="flex h-11 w-14 flex-none items-center justify-center rounded-md bg-[#151515] font-mono text-xl font-black text-[#f2b705]">
                     +10
                   </span>
                   <div className="min-w-0">
                     <p className="font-semibold">Resultado exacto</p>
-                    <p className="text-xs text-[#526154]">Marcador completo acertado.</p>
+                    <p className="text-xs text-[#5d615f]">Marcador completo acertado.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 rounded-md bg-white p-3">
-                  <span className="flex h-11 w-14 flex-none items-center justify-center rounded-md bg-[#147a45] font-mono text-xl font-black text-white">
+                  <span className="flex h-11 w-14 flex-none items-center justify-center rounded-md bg-[#007a3d] font-mono text-xl font-black text-white">
                     +5
                   </span>
                   <div className="min-w-0">
                     <p className="font-semibold">Signo 1X2 correcto</p>
-                    <p className="text-xs text-[#526154]">Victoria, derrota o empate acertado.</p>
+                    <p className="text-xs text-[#5d615f]">Victoria, derrota o empate acertado.</p>
                   </div>
                 </div>
               </div>
             </section>
-            <div className="mt-5 rounded-md border border-[#dfeadd] bg-white p-3">
+            <div className="mt-5 rounded-md border border-[#e7dcc6] bg-white p-3">
               <h3 className="text-sm font-semibold">Comparte este link</h3>
-              <p className="mt-1 text-xs leading-5 text-[#526154]">
+              <p className="mt-1 text-xs leading-5 text-[#5d615f]">
                 Quien lo abra entrara directamente a este grupo y solo tendra que poner usuario y
                 contrasena.
               </p>
               <input
-                className="mt-3 w-full rounded-md border border-[#bad0b6] bg-[#f8fbf5] px-3 py-2 text-xs"
+                className="mt-3 w-full rounded-md border border-[#d6c7aa] bg-[#fffaf0] px-3 py-2 text-xs"
                 readOnly
                 value={inviteUrl}
               />
             </div>
-            <div className="mt-5 rounded-md border border-[#dfeadd] bg-white p-3">
+            <div className="mt-5 rounded-md border border-[#e7dcc6] bg-white p-3">
               <h3 className="text-sm font-semibold">Tus grupos</h3>
               <div className="mt-3 grid gap-2">
                 {user.memberships.map((membership) => (
                   <Link
                     className={`rounded-md px-3 py-2 text-sm font-semibold ${
                       membership.groupId === group.id
-                        ? "bg-[#147a45] text-white"
-                        : "bg-[#edf5e9] text-[#102015]"
+                        ? "bg-[#007a3d] text-white"
+                        : "bg-[#fff4d6] text-[#151515]"
                     }`}
                     href={`/g/${membership.group.code}`}
                     key={membership.groupId}
@@ -484,7 +502,7 @@ export default async function GroupHome({
                   </Link>
                 ))}
               </div>
-              <Link className="mt-3 block text-sm font-semibold text-[#147a45]" href="/grupo">
+              <Link className="mt-3 block text-sm font-semibold text-[#007a3d]" href="/grupo">
                 Crear o unirme a otro grupo
               </Link>
             </div>

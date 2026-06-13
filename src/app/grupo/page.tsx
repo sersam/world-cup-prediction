@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -23,14 +24,20 @@ export default async function GroupPage({
   const error = params?.error ? errorMessages[params.error] : null;
 
   return (
-    <main className="pitch-bg pitch-lines min-h-screen px-5 py-10 text-[#102015]">
+    <main className="pitch-bg pitch-lines min-h-screen px-5 py-10 text-[#151515]">
       <section className="relative z-10 mx-auto grid w-full max-w-5xl gap-6 md:grid-cols-2">
         <div className="md:col-span-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#147a45]">
-            Mundial
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Elige tu grupo</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#526154]">
+          <div className="brand-lockup">
+            <span className="brand-logo" aria-hidden="true">
+              <Image alt="" height={650} priority src="/brand/world-cup-2026.webp" width={866} />
+            </span>
+            <div className="min-w-0">
+              <p className="brand-kicker text-sm font-semibold">Mundial 2026</p>
+              <h1 className="brand-heading mt-2 text-3xl sm:text-4xl">Elige tu grupo</h1>
+            </div>
+          </div>
+          <div className="brand-rule mt-5" />
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5d615f]">
             Hola, {user.nickname}. Puedes crear un grupo nuevo, unirte con codigo o moverte entre
             los grupos en los que ya estas.
           </p>
@@ -42,17 +49,17 @@ export default async function GroupPage({
         </div>
 
         {user.memberships.length > 0 ? (
-          <article className="glass-panel rounded-lg p-6 text-[#102015] md:col-span-2">
+          <article className="glass-panel rounded-lg p-6 text-[#151515] md:col-span-2">
             <h2 className="text-2xl font-semibold">Tus grupos</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {user.memberships.map((membership) => (
                 <Link
-                  className="rounded-lg border border-[#dfeadd] bg-white p-4 font-semibold text-[#102015] shadow-sm"
+                  className="rounded-lg border border-[#e7dcc6] bg-white p-4 font-semibold text-[#151515] shadow-sm"
                   href={`/g/${membership.group.code}`}
                   key={membership.groupId}
                 >
                   <span className="block truncate">{membership.group.name}</span>
-                  <span className="mt-2 block font-mono text-sm text-[#147a45]">
+                  <span className="mt-2 block font-mono text-sm text-[#007a3d]">
                     {membership.group.code}
                   </span>
                 </Link>
@@ -61,13 +68,13 @@ export default async function GroupPage({
           </article>
         ) : null}
 
-        <article className="glass-panel rounded-lg p-6 text-[#102015]">
+        <article className="glass-panel rounded-lg p-6 text-[#151515]">
           <h2 className="text-2xl font-semibold">Crear grupo</h2>
           <form action="/api/groups" className="mt-5 grid gap-4" method="post">
             <label className="grid gap-2 text-sm font-semibold">
               Nombre
               <input
-                className="h-12 rounded-md border border-[#bad0b6] bg-white px-3 text-base"
+                className="h-12 rounded-md border border-[#d6c7aa] bg-white px-3 text-base"
                 maxLength={60}
                 minLength={2}
                 name="name"
@@ -77,33 +84,33 @@ export default async function GroupPage({
             <label className="grid gap-2 text-sm font-semibold">
               Codigo
               <input
-                className="h-12 rounded-md border border-[#bad0b6] bg-white px-3 font-mono text-base uppercase"
+                className="h-12 rounded-md border border-[#d6c7aa] bg-white px-3 font-mono text-base uppercase"
                 maxLength={24}
                 minLength={3}
                 name="code"
                 required
               />
             </label>
-            <button className="h-12 rounded-md bg-[#147a45] font-semibold text-white shadow-md" type="submit">
+            <button className="h-12 rounded-md bg-[#007a3d] font-semibold text-white shadow-md" type="submit">
               Crear y entrar
             </button>
           </form>
         </article>
 
-        <article className="glass-panel rounded-lg p-6 text-[#102015]">
+        <article className="glass-panel rounded-lg p-6 text-[#151515]">
           <h2 className="text-2xl font-semibold">Unirse con codigo</h2>
           <form action="/api/groups/join" className="mt-5 grid gap-4" method="post">
             <label className="grid gap-2 text-sm font-semibold">
               Codigo del grupo
               <input
-                className="h-12 rounded-md border border-[#bad0b6] bg-white px-3 font-mono text-base uppercase"
+                className="h-12 rounded-md border border-[#d6c7aa] bg-white px-3 font-mono text-base uppercase"
                 maxLength={24}
                 minLength={3}
                 name="code"
                 required
               />
             </label>
-            <button className="h-12 rounded-md bg-[#102015] font-semibold text-white shadow-md" type="submit">
+            <button className="h-12 rounded-md bg-[#151515] font-semibold text-white shadow-md" type="submit">
               Unirme
             </button>
           </form>

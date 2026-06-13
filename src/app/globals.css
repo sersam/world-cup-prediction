@@ -1,21 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eef4ea;
-  --foreground: #102015;
+  --background: #f6f3ee;
+  --foreground: #151515;
+  --wc-blue: #034ea2;
+  --wc-red: #d71920;
+  --wc-green: #007a3d;
+  --wc-gold: #f2b705;
+  --wc-cream: #fffaf0;
+  --wc-ink: #151515;
+  --wc-muted: #5d615f;
+  --wc-line: #e7dcc6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: var(--font-fixture), Arial, Helvetica, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-fixture), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
 }
 
@@ -36,17 +44,18 @@ a:hover {
 
 .pitch-bg {
   background:
-    radial-gradient(circle at 16% 0%, rgba(250, 204, 21, 0.16), transparent 28%),
-    radial-gradient(circle at 86% 8%, rgba(22, 163, 74, 0.18), transparent 30%),
-    linear-gradient(90deg, rgba(20, 122, 69, 0.06) 1px, transparent 1px),
+    radial-gradient(circle at 13% 0%, rgba(215, 25, 32, 0.18), transparent 26%),
+    radial-gradient(circle at 84% 8%, rgba(3, 78, 162, 0.18), transparent 28%),
+    radial-gradient(circle at 70% 82%, rgba(242, 183, 5, 0.18), transparent 30%),
+    linear-gradient(90deg, rgba(0, 122, 61, 0.08) 1px, transparent 1px),
     repeating-linear-gradient(
       90deg,
-      rgba(34, 197, 94, 0.08) 0,
-      rgba(34, 197, 94, 0.08) 80px,
-      rgba(255, 255, 255, 0.18) 80px,
-      rgba(255, 255, 255, 0.18) 160px
+      rgba(0, 122, 61, 0.07) 0,
+      rgba(0, 122, 61, 0.07) 84px,
+      rgba(255, 255, 255, 0.24) 84px,
+      rgba(255, 255, 255, 0.24) 168px
     ),
-    linear-gradient(135deg, #f8fbf5 0%, #e6f0e2 52%, #d8ead5 100%);
+    linear-gradient(135deg, #fffaf0 0%, #f6f3ee 48%, #e8f1eb 100%);
 }
 
 .pitch-lines {
@@ -55,7 +64,7 @@ a:hover {
 }
 
 .pitch-lines::before {
-  border: 1px solid rgba(20, 122, 69, 0.11);
+  border: 1px solid rgba(3, 78, 162, 0.12);
   border-left: 0;
   border-right: 0;
   content: "";
@@ -66,7 +75,7 @@ a:hover {
 }
 
 .pitch-lines::after {
-  border: 1px solid rgba(20, 122, 69, 0.11);
+  border: 1px solid rgba(215, 25, 32, 0.12);
   border-radius: 999px;
   content: "";
   height: 220px;
@@ -79,42 +88,182 @@ a:hover {
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(203, 221, 197, 0.9);
-  box-shadow: 0 16px 40px rgba(16, 32, 21, 0.12);
+  background: rgba(255, 250, 240, 0.94);
+  border: 1px solid rgba(231, 220, 198, 0.95);
+  box-shadow: 0 18px 42px rgba(21, 21, 21, 0.12);
 }
 
 .match-card {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 241, 0.98)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 240, 0.98)),
     #ffffff;
-  border: 1px solid rgba(212, 226, 207, 0.9);
-  box-shadow: 0 12px 28px rgba(16, 32, 21, 0.11);
+  border: 1px solid rgba(231, 220, 198, 0.94);
+  box-shadow: 0 12px 28px rgba(21, 21, 21, 0.1);
 }
 
 .flag-ball {
   align-items: center;
   aspect-ratio: 1;
-  background:
-    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.22) 30%, transparent 31%),
-    linear-gradient(135deg, #ffffff, #d9e7d3);
-  border: 2px solid #ffffff;
+  background: #ffffff;
+  border: 0;
   border-radius: 999px;
   box-shadow:
     inset 0 -6px 12px rgba(15, 23, 42, 0.14),
     0 5px 13px rgba(15, 23, 42, 0.28);
   color: #111827;
   display: inline-flex;
-  font-size: 1.25rem;
   justify-content: center;
   flex: 0 0 auto;
   height: 2.5rem;
+  line-height: 1;
   overflow: hidden;
+  position: relative;
   width: 2.5rem;
 }
 
 .flag-ball-sm {
-  font-size: 1rem;
   height: 2rem;
   width: 2rem;
+}
+
+.flag-ball-fill {
+  display: block;
+  font-size: 2.8rem;
+  line-height: 1;
+  transform: scale(1.42);
+  transform-origin: center;
+}
+
+.flag-ball-sm .flag-ball-fill {
+  font-size: 2.25rem;
+  transform: scale(1.5);
+}
+
+.flag-ball-img {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+.brand-panel {
+  background:
+    linear-gradient(135deg, rgba(21, 21, 21, 0.94), rgba(3, 78, 162, 0.94)),
+    var(--wc-ink);
+  border: 1px solid rgba(255, 250, 240, 0.18);
+  box-shadow: 0 20px 48px rgba(21, 21, 21, 0.2);
+  color: white;
+}
+
+.brand-kicker {
+  color: var(--wc-gold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.brand-heading {
+  color: var(--wc-ink);
+  font-weight: 700;
+}
+
+.brand-heading-on-dark {
+  color: white;
+  font-weight: 700;
+}
+
+.brand-copy {
+  color: var(--wc-muted);
+}
+
+.brand-copy-on-dark {
+  color: rgba(255, 250, 240, 0.78);
+}
+
+.brand-logo {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(242, 183, 5, 0.5);
+  border-radius: 8px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 5.75rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 5.75rem;
+}
+
+.brand-logo img {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+.brand-lockup {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.brand-rule {
+  background: linear-gradient(90deg, var(--wc-red), var(--wc-gold), var(--wc-green), var(--wc-blue));
+  border-radius: 999px;
+  height: 0.35rem;
+  width: min(22rem, 100%);
+}
+
+.brand-button {
+  background: var(--wc-red);
+  color: #ffffff;
+}
+
+.brand-button-alt {
+  background: var(--wc-blue);
+  color: #ffffff;
+}
+
+.brand-button-gold {
+  background: var(--wc-gold);
+  color: var(--wc-ink);
+}
+
+.brand-input {
+  border-color: #d6c7aa;
+  background: #ffffff;
+}
+
+.brand-input:focus {
+  border-color: var(--wc-blue);
+  outline: 2px solid rgba(3, 78, 162, 0.16);
+  outline-offset: 2px;
+}
+
+.brand-pill {
+  background: rgba(3, 78, 162, 0.1);
+  color: var(--wc-blue);
+}
+
+.brand-note {
+  background: rgba(242, 183, 5, 0.14);
+  color: var(--wc-muted);
+}
+
+.brand-link {
+  color: var(--wc-blue);
+}
+
+.brand-score {
+  background: var(--wc-ink);
+  color: var(--wc-gold);
+}
+
+@media (max-width: 640px) {
+  .brand-lockup {
+    align-items: flex-start;
+  }
+
+  .brand-logo {
+    height: 4.75rem;
+    width: 4.75rem;
+  }
 }

@@ -4,6 +4,14 @@ const specialTeamFlags: Record<string, string> = {
   WAL: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}",
 };
 
+const specialTeamFlagImages: Record<string, string> = {
+  ENG: "gb-eng",
+  SCO: "gb-sct",
+  WAL: "gb-wls",
+};
+
+const circleFlagsBaseUrl = "https://hatscripts.github.io/circle-flags/flags";
+
 const fifaToIso2: Record<string, string> = {
   ALG: "DZ",
   ARG: "AR",
@@ -81,4 +89,18 @@ export function flagFromTeamCode(code?: string | null): string {
   return [...iso2]
     .map((letter) => String.fromCodePoint(127397 + letter.charCodeAt(0)))
     .join("");
+}
+
+export function flagImageSrcFromTeamCode(code?: string | null): string {
+  if (!code) return "";
+
+  const normalized = code.trim().toUpperCase();
+  const specialImage = specialTeamFlagImages[normalized];
+  if (specialImage) return `${circleFlagsBaseUrl}/${specialImage}.svg`;
+
+  const iso2 = /^[A-Z]{2}$/.test(normalized)
+    ? normalized
+    : fifaToIso2[normalized];
+
+  return iso2 ? `${circleFlagsBaseUrl}/${iso2.toLowerCase()}.svg` : "";
 }

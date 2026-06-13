@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -29,15 +30,21 @@ export default async function EnterPage({
   const error = params?.error ? errorMessages[params.error] : null;
 
   return (
-    <main className="pitch-bg pitch-lines grid min-h-screen place-items-center px-5 py-10 text-[#102015]">
-      <section className="glass-panel relative z-10 w-full max-w-md rounded-lg p-6 text-[#102015]">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#147a45]">
-          Mundial
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold">
-          {group ? `Entra en ${group.name}` : "Entra o crea tu usuario"}
-        </h1>
-        <p className="mt-3 text-sm leading-6 text-[#526154]">
+    <main className="pitch-bg pitch-lines grid min-h-screen place-items-center px-5 py-10 text-[#151515]">
+      <section className="glass-panel relative z-10 w-full max-w-md rounded-lg p-6 text-[#151515]">
+        <div className="brand-lockup">
+          <span className="brand-logo" aria-hidden="true">
+            <Image alt="" height={650} priority src="/brand/world-cup-2026.webp" width={866} />
+          </span>
+          <div className="min-w-0">
+            <p className="brand-kicker text-sm font-semibold">Mundial 2026</p>
+            <h1 className="brand-heading mt-2 text-3xl">
+              {group ? `Entra en ${group.name}` : "Entra o crea tu usuario"}
+            </h1>
+          </div>
+        </div>
+        <div className="brand-rule mt-5" />
+        <p className="mt-3 text-sm leading-6 text-[#5d615f]">
           El usuario es el nombre que aparecera en los rankings. La contrasena protege tus
           predicciones para que nadie pueda entrar con tu usuario y cambiarlas.
         </p>
@@ -51,7 +58,7 @@ export default async function EnterPage({
           <label className="grid gap-2 text-sm font-semibold">
             Usuario
             <input
-              className="h-12 rounded-md border border-[#bad0b6] bg-white px-3 text-base"
+              className="h-12 rounded-md border border-[#d6c7aa] bg-white px-3 text-base"
               maxLength={40}
               minLength={2}
               name="nickname"
@@ -61,7 +68,7 @@ export default async function EnterPage({
           <label className="grid gap-2 text-sm font-semibold">
             Contrasena
             <input
-              className="h-12 rounded-md border border-[#bad0b6] bg-white px-3 text-base"
+              className="h-12 rounded-md border border-[#d6c7aa] bg-white px-3 text-base"
               maxLength={64}
               minLength={4}
               name="password"
@@ -69,7 +76,7 @@ export default async function EnterPage({
               type="password"
             />
           </label>
-          <button className="h-12 rounded-md bg-[#147a45] font-semibold text-white shadow-md" type="submit">
+          <button className="h-12 rounded-md bg-[#007a3d] font-semibold text-white shadow-md" type="submit">
             Continuar
           </button>
         </form>
