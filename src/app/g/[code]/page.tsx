@@ -3,7 +3,9 @@ import Image from "next/image";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
+import { BadgeList } from "@/app/_components/badges";
 import { getCurrentUser } from "@/lib/auth";
+import { buildGroupBadges } from "@/lib/badges";
 import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } from "@/lib/dates";
 import { flagFromTeamCode, flagImageSrcFromTeamCode } from "@/lib/flags";
 import { prisma } from "@/lib/prisma";
@@ -121,7 +123,18 @@ export default async function GroupHome({
           some: { groupId: group.id },
         },
       },
-      include: { predictions: { where: { groupId: group.id } } },
+      include: {
+        predictions: {
+          where: { groupId: group.id },
+          include: {
+            match: {
+              select: {
+                utcDate: true,
+              },
+            },
+          },
+        },
+      },
     }),
     prisma.match.findMany({
       where: {
@@ -171,6 +184,12 @@ export default async function GroupHome({
 
   const matches = activeWindowMatches.length > 0 ? activeWindowMatches : upcomingMatches;
   const topThree = buildRanking(groupUsers).slice(0, 3);
+  const ranking = buildRanking(groupUsers);
+  const groupBadges = buildGroupBadges(groupUsers, {
+    ranking,
+    targetMatchIds: matches.map((match) => match.id),
+  });
+  const currentUserBadges = groupBadges.get(user.id) ?? [];
 
   return (
     <main className="pitch-bg pitch-lines min-h-screen text-[#151515]">
@@ -232,6 +251,11 @@ export default async function GroupHome({
                         <p className="text-xs font-bold text-[#007a3d] md:text-sm">
                           {entry.points} pts
                         </p>
+                        {(groupBadges.get(entry.id)?.length ?? 0) > 0 ? (
+                          <div className="mt-2 flex justify-center md:justify-start">
+                            <BadgeList badges={groupBadges.get(entry.id)!} compact limit={4} />
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                     <div
@@ -450,6 +474,12 @@ export default async function GroupHome({
                 <dd className="font-semibold">{user.totalPoints}</dd>
               </div>
             </dl>
+            <section className="mt-5 rounded-lg border border-[#e7dcc6] bg-white p-3">
+              <h3 className="text-sm font-semibold text-[#151515]">Tus insignias</h3>
+              <div className="mt-3">
+                <BadgeList badges={currentUserBadges} compact limit={6} />
+              </div>
+            </section>
             <section className="mt-5 rounded-lg border border-[#e7dcc6] bg-[#fff4d6] p-3">
               <h3 className="text-sm font-semibold text-[#151515]">Sistema de puntuacion</h3>
               <div className="mt-3 grid gap-2">

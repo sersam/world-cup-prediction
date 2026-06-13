@@ -1,7 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { BadgeList } from "@/app/_components/badges";
 import { getCurrentUser } from "@/lib/auth";
+import { buildGroupBadges } from "@/lib/badges";
+import { getTodayWindow, getTomorrowWindow } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
 
@@ -22,15 +25,48 @@ export default async function GroupRankingPage({
   )?.group;
   if (!group) redirect("/grupo");
 
-  const users = await prisma.user.findMany({
-    where: {
-      memberships: {
-        some: { groupId: group.id },
+  const today = getTodayWindow();
+  const tomorrow = getTomorrowWindow();
+  const [users, activeWindowMatches, upcomingMatches] = await Promise.all([
+    prisma.user.findMany({
+      where: {
+        memberships: {
+          some: { groupId: group.id },
+        },
       },
-    },
-    include: { predictions: { where: { groupId: group.id } } },
-  });
+      include: {
+        predictions: {
+          where: { groupId: group.id },
+          include: {
+            match: {
+              select: {
+                utcDate: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.match.findMany({
+      where: {
+        utcDate: { gte: today.start, lt: tomorrow.end },
+      },
+      orderBy: { utcDate: "asc" },
+    }),
+    prisma.match.findMany({
+      where: {
+        utcDate: { gte: new Date() },
+      },
+      orderBy: { utcDate: "asc" },
+      take: 12,
+    }),
+  ]);
   const ranking = buildRanking(users);
+  const visibleMatches = activeWindowMatches.length > 0 ? activeWindowMatches : upcomingMatches;
+  const groupBadges = buildGroupBadges(users, {
+    ranking,
+    targetMatchIds: visibleMatches.map((match) => match.id),
+  });
 
   return (
     <main className="pitch-bg pitch-lines min-h-screen px-5 py-8 text-[#151515]">
@@ -48,16 +84,21 @@ export default async function GroupRankingPage({
           </div>
         </div>
         <div className="brand-rule mt-5" />
-        <div className="glass-panel mt-6 overflow-hidden rounded-lg text-[#151515]">
+        <div className="ranking-list glass-panel mt-6 overflow-visible rounded-lg text-[#151515]">
           {ranking.map((entry, index) => (
             <div
-              className="grid grid-cols-[64px_1fr_96px] items-center border-b border-[#e7dcc6] px-4 py-3 last:border-b-0"
+              className="grid grid-cols-[64px_minmax(0,1fr)_96px] items-center border-b border-[#e7dcc6] px-4 py-3 last:border-b-0"
               key={entry.id}
             >
               <span className="font-mono text-sm text-[#5d615f]">
                 {rankingMedals[index] ?? `#${index + 1}`}
               </span>
-              <span className="truncate font-semibold">{entry.nickname}</span>
+              <span className="flex min-w-0 flex-wrap items-center gap-2">
+                <span className="truncate font-semibold">{entry.nickname}</span>
+                {(groupBadges.get(entry.id)?.length ?? 0) > 0 ? (
+                  <BadgeList badges={groupBadges.get(entry.id)!} compact limit={4} />
+                ) : null}
+              </span>
               <span className="text-right font-bold text-[#007a3d]">{entry.points} pts</span>
             </div>
           ))}

@@ -257,6 +257,143 @@ a:hover {
   color: var(--wc-gold);
 }
 
+.badge-chip {
+  align-items: center;
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: help;
+  display: inline-grid;
+  flex: 0 0 auto;
+  height: 2rem;
+  padding: 0;
+  place-items: center;
+  position: relative;
+  width: 2rem;
+}
+
+.badge-chip-compact {
+  height: 1.65rem;
+  width: 1.65rem;
+}
+
+.badge-chip svg {
+  fill: none;
+  height: 1.1rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 1.1rem;
+}
+
+.badge-chip-compact svg {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.badge-chip:focus-visible {
+  outline: 2px solid rgba(3, 78, 162, 0.34);
+  outline-offset: 2px;
+}
+
+.badge-tooltip {
+  background: var(--wc-ink);
+  border: 1px solid rgba(255, 250, 240, 0.18);
+  border-radius: 8px;
+  bottom: calc(100% + 0.55rem);
+  box-shadow: 0 12px 28px rgba(21, 21, 21, 0.24);
+  color: #ffffff;
+  display: grid;
+  font-size: 0.75rem;
+  font-weight: 500;
+  gap: 0.25rem;
+  left: 50%;
+  line-height: 1.25;
+  max-width: 13rem;
+  min-width: 10rem;
+  opacity: 0;
+  padding: 0.55rem 0.65rem;
+  pointer-events: none;
+  position: absolute;
+  text-align: left;
+  transform: translate(-50%, 0.25rem);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+  visibility: hidden;
+  white-space: normal;
+  z-index: 30;
+}
+
+.badge-tooltip strong {
+  color: var(--wc-gold);
+  font-size: 0.78rem;
+}
+
+.badge-chip:hover .badge-tooltip,
+.badge-chip:focus .badge-tooltip,
+.badge-chip:focus-visible .badge-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  visibility: visible;
+}
+
+.ranking-list .badge-chip:hover,
+.ranking-list .badge-chip:focus,
+.ranking-list .badge-chip:focus-visible {
+  z-index: 50;
+}
+
+.ranking-list .badge-tooltip {
+  bottom: auto;
+  top: calc(100% + 0.55rem);
+  transform: translate(-50%, -0.25rem);
+  z-index: 60;
+}
+
+.ranking-list .badge-chip:hover .badge-tooltip,
+.ranking-list .badge-chip:focus .badge-tooltip,
+.ranking-list .badge-chip:focus-visible .badge-tooltip {
+  transform: translate(-50%, 0);
+}
+
+.badge-chip-gold {
+  background: rgba(242, 183, 5, 0.18);
+  border-color: rgba(242, 183, 5, 0.45);
+  color: #6d4d00;
+}
+
+.badge-chip-blue {
+  background: rgba(3, 78, 162, 0.11);
+  border-color: rgba(3, 78, 162, 0.24);
+  color: var(--wc-blue);
+}
+
+.badge-chip-green {
+  background: rgba(0, 122, 61, 0.11);
+  border-color: rgba(0, 122, 61, 0.24);
+  color: var(--wc-green);
+}
+
+.badge-chip-red {
+  background: rgba(215, 25, 32, 0.1);
+  border-color: rgba(215, 25, 32, 0.24);
+  color: var(--wc-red);
+}
+
+.badge-chip-dark {
+  background: rgba(21, 21, 21, 0.08);
+  border-color: rgba(21, 21, 21, 0.16);
+  color: var(--wc-ink);
+}
+
+.badge-chip-cream {
+  background: #fffaf0;
+  border-color: #e7dcc6;
+  color: #5d5141;
+}
+
 @media (max-width: 640px) {
   .brand-lockup {
     align-items: flex-start;
