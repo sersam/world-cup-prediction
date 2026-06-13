@@ -26,6 +26,14 @@ export default async function EnterPage({
   const code = params?.code ? normalizeGroupCode(params.code) : null;
   const group = code ? await prisma.group.findUnique({ where: { code } }) : null;
   if (code && !group) redirect("/grupo?error=no-existe");
+  if (user && group) {
+    await prisma.groupMember.upsert({
+      where: { userId_groupId: { userId: user.id, groupId: group.id } },
+      create: { userId: user.id, groupId: group.id },
+      update: {},
+    });
+    redirect(`/g/${group.code}`);
+  }
 
   const error = params?.error ? errorMessages[params.error] : null;
 
