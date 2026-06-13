@@ -7,7 +7,7 @@ import { BadgeList } from "@/app/_components/badges";
 import { getCurrentUser } from "@/lib/auth";
 import { buildGroupBadges } from "@/lib/badges";
 import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } from "@/lib/dates";
-import { flagFromTeamCode, flagImageSrcFromTeamCode } from "@/lib/flags";
+import { flagFromTeamCode, flagImageSrcFromTeamCode, teamNameEsFromCode } from "@/lib/flags";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
 
@@ -313,6 +313,8 @@ export default async function GroupHome({
                   const prediction = match.predictions[0];
                   const open = isPredictionOpen(match.utcDate);
                   const missingClosedPrediction = !open && !prediction;
+                  const homeTeamName = teamNameEsFromCode(match.homeTeamCode, match.homeTeam);
+                  const awayTeamName = teamNameEsFromCode(match.awayTeamCode, match.awayTeam);
 
                   return (
                     <article
@@ -325,13 +327,13 @@ export default async function GroupHome({
                             {formatMatchDate(match.utcDate)}
                           </p>
                           <h3 className="mt-2 flex min-w-0 flex-wrap items-center gap-2 text-xl font-semibold">
-                            <FlagBall code={match.homeTeamCode} label={match.homeTeam} small />
-                            <span className="min-w-0 break-words">{match.homeTeam}</span>
+                            <FlagBall code={match.homeTeamCode} label={homeTeamName} small />
+                            <span className="min-w-0 break-words">{homeTeamName}</span>
                             <span className="rounded-full bg-[#eaf1ff] px-2 py-1 text-xs font-bold text-[#007a3d]">
                               vs
                             </span>
-                            <FlagBall code={match.awayTeamCode} label={match.awayTeam} small />
-                            <span className="min-w-0 break-words">{match.awayTeam}</span>
+                            <FlagBall code={match.awayTeamCode} label={awayTeamName} small />
+                            <span className="min-w-0 break-words">{awayTeamName}</span>
                           </h3>
                           <p className="mt-2 text-sm font-semibold text-[#007a3d]">
                             {resultText(match)}
@@ -348,7 +350,7 @@ export default async function GroupHome({
                           <label className="grid gap-1 text-xs font-semibold uppercase text-[#5d615f]">
                             <span>Local</span>
                             <span className="flex min-w-0 items-center gap-2">
-                              <FlagBall code={match.homeTeamCode} label={match.homeTeam} />
+                              <FlagBall code={match.homeTeamCode} label={homeTeamName} />
                               <input
                                 className="h-11 w-16 rounded-md border border-[#d6c7aa] bg-white px-3 text-center text-base font-bold"
                                 defaultValue={
@@ -365,7 +367,7 @@ export default async function GroupHome({
                           <label className="grid gap-1 text-xs font-semibold uppercase text-[#5d615f]">
                             <span>Visit.</span>
                             <span className="flex min-w-0 items-center gap-2">
-                              <FlagBall code={match.awayTeamCode} label={match.awayTeam} />
+                              <FlagBall code={match.awayTeamCode} label={awayTeamName} />
                               <input
                                 className="h-11 w-16 rounded-md border border-[#d6c7aa] bg-white px-3 text-center text-base font-bold"
                                 defaultValue={
@@ -420,6 +422,8 @@ export default async function GroupHome({
                 <div className="mt-4 space-y-3">
                   {finishedMatches.map((match) => {
                     const prediction = match.predictions[0];
+                    const homeTeamName = teamNameEsFromCode(match.homeTeamCode, match.homeTeam);
+                    const awayTeamName = teamNameEsFromCode(match.awayTeamCode, match.awayTeam);
 
                     return (
                       <article
@@ -431,13 +435,13 @@ export default async function GroupHome({
                         </p>
                         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <h3 className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-semibold">
-                            <FlagBall code={match.homeTeamCode} label={match.homeTeam} small />
-                            <span className="min-w-0 break-words">{match.homeTeam}</span>
+                            <FlagBall code={match.homeTeamCode} label={homeTeamName} small />
+                            <span className="min-w-0 break-words">{homeTeamName}</span>
                             <span className="rounded-full bg-[#eaf1ff] px-2 py-1 text-xs font-bold text-[#007a3d]">
                               vs
                             </span>
-                            <FlagBall code={match.awayTeamCode} label={match.awayTeam} small />
-                            <span className="min-w-0 break-words">{match.awayTeam}</span>
+                            <FlagBall code={match.awayTeamCode} label={awayTeamName} small />
+                            <span className="min-w-0 break-words">{awayTeamName}</span>
                           </h3>
                           <p className="rounded-md bg-[#151515] px-3 py-2 text-center font-mono text-lg font-bold text-[#f2b705]">
                             {resultText(match)}

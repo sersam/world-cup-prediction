@@ -10,7 +10,73 @@ const specialTeamFlagImages: Record<string, string> = {
   WAL: "gb-wls",
 };
 
+const specialTeamNamesEs: Record<string, string> = {
+  ENG: "Inglaterra",
+  SCO: "Escocia",
+  WAL: "Gales",
+};
+
 const circleFlagsBaseUrl = "https://hatscripts.github.io/circle-flags/flags";
+
+const iso2NamesEs: Record<string, string> = {
+  AR: "Argentina",
+  AT: "Austria",
+  AU: "Australia",
+  BA: "Bosnia-Herzegovina",
+  BE: "Bélgica",
+  BR: "Brasil",
+  CA: "Canadá",
+  CH: "Suiza",
+  CI: "Costa de Marfil",
+  CL: "Chile",
+  CM: "Camerún",
+  CO: "Colombia",
+  CR: "Costa Rica",
+  CV: "Cabo Verde",
+  CW: "Curazao",
+  CZ: "Chequia",
+  CD: "RD Congo",
+  DE: "Alemania",
+  DK: "Dinamarca",
+  DZ: "Argelia",
+  EC: "Ecuador",
+  EG: "Egipto",
+  ES: "España",
+  FR: "Francia",
+  GB: "Reino Unido",
+  GH: "Ghana",
+  HT: "Haití",
+  HR: "Croacia",
+  IQ: "Irak",
+  IR: "Irán",
+  IT: "Italia",
+  JO: "Jordania",
+  JP: "Japón",
+  KR: "Corea del Sur",
+  MA: "Marruecos",
+  MX: "México",
+  NG: "Nigeria",
+  NL: "Países Bajos",
+  NO: "Noruega",
+  NZ: "Nueva Zelanda",
+  PA: "Panamá",
+  PE: "Perú",
+  PL: "Polonia",
+  PT: "Portugal",
+  PY: "Paraguay",
+  QA: "Qatar",
+  RS: "Serbia",
+  SA: "Arabia Saudí",
+  SE: "Suecia",
+  SN: "Senegal",
+  TN: "Túnez",
+  TR: "Turquía",
+  UA: "Ucrania",
+  US: "Estados Unidos",
+  UY: "Uruguay",
+  UZ: "Uzbekistán",
+  ZA: "Sudáfrica",
+};
 
 const fifaToIso2: Record<string, string> = {
   ALG: "DZ",
@@ -103,4 +169,18 @@ export function flagImageSrcFromTeamCode(code?: string | null): string {
     : fifaToIso2[normalized];
 
   return iso2 ? `${circleFlagsBaseUrl}/${iso2.toLowerCase()}.svg` : "";
+}
+
+export function teamNameEsFromCode(code?: string | null, fallback = ""): string {
+  if (!code) return fallback;
+
+  const normalized = code.trim().toUpperCase();
+  const specialName = specialTeamNamesEs[normalized];
+  if (specialName) return specialName;
+
+  const iso2 = /^[A-Z]{2}$/.test(normalized)
+    ? normalized
+    : fifaToIso2[normalized];
+
+  return iso2 ? (iso2NamesEs[iso2] ?? fallback) : fallback;
 }

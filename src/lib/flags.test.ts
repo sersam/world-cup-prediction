@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flagFromTeamCode } from "@/lib/flags";
+import { flagFromTeamCode, teamNameEsFromCode } from "@/lib/flags";
 
 const syncedWorldCupCodes = [
   "ALG",
@@ -70,5 +70,19 @@ describe("flagFromTeamCode", () => {
       "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}",
     );
     expect(flagFromTeamCode("GB")).toBe("🇬🇧");
+  });
+});
+
+describe("teamNameEsFromCode", () => {
+  it("translates FIFA team codes to Spanish country names", () => {
+    expect(teamNameEsFromCode("USA", "United States")).toBe("Estados Unidos");
+    expect(teamNameEsFromCode("KOR", "South Korea")).toBe("Corea del Sur");
+    expect(teamNameEsFromCode("NED", "Netherlands")).toBe("Países Bajos");
+    expect(teamNameEsFromCode("GER", "Germany")).toBe("Alemania");
+  });
+
+  it("uses Spanish names for home nations and falls back when code is missing", () => {
+    expect(teamNameEsFromCode("ENG", "England")).toBe("Inglaterra");
+    expect(teamNameEsFromCode(null, "Equipo por confirmar")).toBe("Equipo por confirmar");
   });
 });
