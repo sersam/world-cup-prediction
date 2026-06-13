@@ -40,6 +40,33 @@ function predictionText(
   return `${prediction.predictedHome} - ${prediction.predictedAway} · ${prediction.points} pts`;
 }
 
+function predictionButtonContent({
+  match,
+  open,
+  hasPrediction,
+}: {
+  match: { status: MatchStatus };
+  open: boolean;
+  hasPrediction: boolean;
+}) {
+  if (open) return hasPrediction ? "Actualizar" : "Guardar";
+
+  if (match.status === MatchStatus.FINISHED) return "Finalizado";
+
+  if (match.status === MatchStatus.IN_PLAY || match.status === MatchStatus.PAUSED) {
+    return (
+      <span className="inline-flex items-center justify-center gap-2">
+        <span>En curso</span>
+        <span aria-hidden="true" className="live-ball">
+          ⚽
+        </span>
+      </span>
+    );
+  }
+
+  return "Cerrado";
+}
+
 function FlagBall({
   code,
   label,
@@ -321,36 +348,27 @@ export default async function GroupHome({
                       className="match-card min-w-0 rounded-lg p-4 text-[#151515]"
                       key={match.id}
                     >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div className="min-w-0">
+                      <form action="/api/predictions" className="grid gap-3" method="post">
+                        <input name="matchId" type="hidden" value={match.id} />
+                        <input name="groupCode" type="hidden" value={group.code} />
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-sm font-medium text-[#5d615f]">
                             {formatMatchDate(match.utcDate)}
                           </p>
-                          <h3 className="mt-2 flex min-w-0 flex-wrap items-center gap-2 text-xl font-semibold">
-                            <FlagBall code={match.homeTeamCode} label={homeTeamName} small />
-                            <span className="min-w-0 break-words">{homeTeamName}</span>
-                            <span className="rounded-full bg-[#eaf1ff] px-2 py-1 text-xs font-bold text-[#007a3d]">
-                              vs
-                            </span>
-                            <FlagBall code={match.awayTeamCode} label={awayTeamName} small />
-                            <span className="min-w-0 break-words">{awayTeamName}</span>
-                          </h3>
-                          <p className="mt-2 text-sm font-semibold text-[#007a3d]">
+                          <span className="rounded-full bg-[#eaf1ff] px-2 py-1 text-xs font-bold text-[#007a3d]">
                             {resultText(match)}
-                          </p>
+                          </span>
                         </div>
-
-                        <form
-                          action="/api/predictions"
-                          className="grid w-full min-w-0 grid-cols-2 gap-3 md:w-auto md:grid-cols-[auto_auto_auto] md:items-end"
-                          method="post"
-                        >
-                          <input name="matchId" type="hidden" value={match.id} />
-                          <input name="groupCode" type="hidden" value={group.code} />
-                          <label className="grid gap-1 text-xs font-semibold uppercase text-[#5d615f]">
-                            <span>Local</span>
+                        <div className="grid gap-2">
+                          <label className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-[#e7dcc6] bg-white px-3 py-2">
                             <span className="flex min-w-0 items-center gap-2">
-                              <FlagBall code={match.homeTeamCode} label={homeTeamName} />
+                              <FlagBall code={match.homeTeamCode} label={homeTeamName} small />
+                              <span className="min-w-0 break-words text-lg font-semibold">
+                                {homeTeamName}
+                              </span>
+                            </span>
+                            <span className="grid gap-1 text-center text-[10px] font-semibold uppercase text-[#5d615f]">
+                              Local
                               <input
                                 className="h-11 w-16 rounded-md border border-[#d6c7aa] bg-white px-3 text-center text-base font-bold"
                                 defaultValue={
@@ -364,10 +382,15 @@ export default async function GroupHome({
                               />
                             </span>
                           </label>
-                          <label className="grid gap-1 text-xs font-semibold uppercase text-[#5d615f]">
-                            <span>Visit.</span>
+                          <label className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-[#e7dcc6] bg-white px-3 py-2">
                             <span className="flex min-w-0 items-center gap-2">
-                              <FlagBall code={match.awayTeamCode} label={awayTeamName} />
+                              <FlagBall code={match.awayTeamCode} label={awayTeamName} small />
+                              <span className="min-w-0 break-words text-lg font-semibold">
+                                {awayTeamName}
+                              </span>
+                            </span>
+                            <span className="grid gap-1 text-center text-[10px] font-semibold uppercase text-[#5d615f]">
+                              Visit.
                               <input
                                 className="h-11 w-16 rounded-md border border-[#d6c7aa] bg-white px-3 text-center text-base font-bold"
                                 defaultValue={
@@ -381,21 +404,37 @@ export default async function GroupHome({
                               />
                             </span>
                           </label>
-                          <button
-                            className="col-span-2 h-11 rounded-md bg-[#007a3d] px-4 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:bg-[#a7aaa7] md:col-span-1"
-                            disabled={!open}
-                            type="submit"
-                          >
-                            {prediction ? "Actualizar" : "Guardar"}
-                          </button>
-                        </form>
-                      </div>
-                      <p className="mt-3 min-w-0 rounded-md bg-[#fff4d6] px-3 py-2 text-sm text-[#5d615f]">
-                        Tu prediccion:{" "}
-                        <span className="font-semibold text-[#1d1b16]">
-                          {predictionText(prediction)}
-                        </span>
-                      </p>
+                        </div>
+                        <div className="grid gap-2 rounded-md bg-[#fff4d6] px-3 py-2 text-sm text-[#5d615f] sm:grid-cols-3">
+                          <span>
+                            Real:{" "}
+                            <strong className="text-[#1d1b16]">{resultText(match)}</strong>
+                          </span>
+                          <span>
+                            Prediccion:{" "}
+                            <strong className="text-[#1d1b16]">
+                              {predictionText(prediction).split(" · ")[0]}
+                            </strong>
+                          </span>
+                          <span>
+                            Puntos:{" "}
+                            <strong className="text-[#1d1b16]">
+                              {prediction ? `${prediction.points} pts` : "-"}
+                            </strong>
+                          </span>
+                        </div>
+                        <button
+                          className="h-11 rounded-md bg-[#007a3d] px-4 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:bg-[#a7aaa7]"
+                          disabled={!open}
+                          type="submit"
+                        >
+                          {predictionButtonContent({
+                            match,
+                            open,
+                            hasPrediction: Boolean(prediction),
+                          })}
+                        </button>
+                      </form>
                     </article>
                   );
                 })}
