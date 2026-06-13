@@ -1,3 +1,9 @@
+const specialTeamFlags: Record<string, string> = {
+  ENG: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
+  SCO: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}",
+  WAL: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}",
+};
+
 const fifaToIso2: Record<string, string> = {
   ALG: "DZ",
   ARG: "AR",
@@ -20,7 +26,6 @@ const fifaToIso2: Record<string, string> = {
   DEN: "DK",
   ECU: "EC",
   EGY: "EG",
-  ENG: "GB",
   ESP: "ES",
   FRA: "FR",
   GER: "DE",
@@ -46,7 +51,6 @@ const fifaToIso2: Record<string, string> = {
   QAT: "QA",
   RSA: "ZA",
   KSA: "SA",
-  SCO: "GB",
   SEN: "SN",
   SRB: "RS",
   SUI: "CH",
@@ -58,13 +62,16 @@ const fifaToIso2: Record<string, string> = {
   URY: "UY",
   USA: "US",
   UZB: "UZ",
-  WAL: "GB",
 };
 
 export function flagFromTeamCode(code?: string | null): string {
   if (!code) return "";
 
   const normalized = code.trim().toUpperCase();
+  const specialFlag = specialTeamFlags[normalized];
+
+  if (specialFlag) return specialFlag;
+
   const iso2 = /^[A-Z]{2}$/.test(normalized)
     ? normalized
     : fifaToIso2[normalized];
