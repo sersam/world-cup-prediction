@@ -88,7 +88,9 @@ export default async function GroupPage({
                 maxLength={24}
                 minLength={3}
                 name="code"
+                pattern="[A-Za-z0-9 -]+"
                 required
+                title="Usa solo letras sin acentos, numeros, espacios o guiones"
               />
             </label>
             <button className="h-12 rounded-md bg-[#007a3d] font-semibold text-white shadow-md" type="submit">
@@ -107,7 +109,9 @@ export default async function GroupPage({
                 maxLength={24}
                 minLength={3}
                 name="code"
+                pattern="[A-Za-z0-9 -]+"
                 required
+                title="Usa solo letras sin acentos, numeros, espacios o guiones"
               />
             </label>
             <button className="h-12 rounded-md bg-[#151515] font-semibold text-white shadow-md" type="submit">

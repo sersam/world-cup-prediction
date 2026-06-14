@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
 
@@ -7,7 +7,8 @@ export async function GET(request: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ ranking: [] });
 
-  const code = new URL(request.url).searchParams.get("code")?.toUpperCase();
+  const rawCode = new URL(request.url).searchParams.get("code");
+  const code = rawCode ? normalizeGroupCode(rawCode) : null;
   const membership = code
     ? user.memberships.find((item) => item.group.code === code)
     : user.memberships[0];

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
   hashPin,
+  isValidGroupCode,
   normalizeGroupCode,
   normalizeNickname,
   setSession,
@@ -33,6 +34,10 @@ export async function POST(request: Request) {
   }
 
   const code = parsed.data.code ? normalizeGroupCode(parsed.data.code) : null;
+  if (code && !isValidGroupCode(code)) {
+    return NextResponse.redirect(new URL("/grupo?error=datos", request.url));
+  }
+
   const group = code ? await prisma.group.findUnique({ where: { code } }) : null;
   if (code && !group) return NextResponse.redirect(new URL("/grupo?error=no-existe", request.url));
 

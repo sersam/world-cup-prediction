@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { BadgeList } from "@/app/_components/badges";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
 import { buildGroupBadges } from "@/lib/badges";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
@@ -19,8 +19,9 @@ export default async function GroupRankingPage({
   const user = await getCurrentUser();
   if (!user) redirect("/entrar");
   const { code } = await params;
+  const groupCode = normalizeGroupCode(code);
   const group = user.memberships.find(
-    (membership) => membership.group.code === code.toUpperCase(),
+    (membership) => membership.group.code === groupCode,
   )?.group;
   if (!group) redirect("/grupo");
 

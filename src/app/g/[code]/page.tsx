@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
 import { BadgeList } from "@/app/_components/badges";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
 import { buildGroupBadges } from "@/lib/badges";
 import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } from "@/lib/dates";
 import { flagFromTeamCode, flagImageSrcFromTeamCode, teamNameEsFromCode } from "@/lib/flags";
@@ -179,13 +179,14 @@ export default async function GroupHome({
   const user = await getCurrentUser();
   if (!user) redirect("/entrar");
   const { code } = await params;
+  const groupCode = normalizeGroupCode(code);
   const query = await searchParams;
   const requestedStage = query?.fase?.trim().toUpperCase();
   const selectedStage = requestedStage && stageOrder.includes(requestedStage as (typeof stageOrder)[number])
     ? requestedStage
     : null;
   const group = user.memberships.find(
-    (membership) => membership.group.code === code.toUpperCase(),
+    (membership) => membership.group.code === groupCode,
   )?.group;
   if (!group) redirect("/grupo");
 

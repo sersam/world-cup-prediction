@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
+import { getCurrentUser, isValidGroupCode, normalizeGroupCode } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const joinSchema = z.object({
@@ -15,8 +15,13 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/grupo?error=datos", request.url));
   }
 
+  const code = normalizeGroupCode(parsed.data.code);
+  if (!isValidGroupCode(code)) {
+    return NextResponse.redirect(new URL("/grupo?error=datos", request.url));
+  }
+
   const group = await prisma.group.findUnique({
-    where: { code: normalizeGroupCode(parsed.data.code) },
+    where: { code },
   });
 
   if (!group) {

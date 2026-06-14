@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isValidGroupCode, normalizeGroupCode } from "@/lib/auth";
 import { isPredictionOpen } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
 import { calculatePredictionPoints } from "@/lib/scoring";
@@ -28,8 +28,13 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/?error=prediccion", request.url));
   }
 
+  const groupCode = normalizeGroupCode(parsed.data.groupCode);
+  if (!isValidGroupCode(groupCode)) {
+    return NextResponse.redirect(new URL("/grupo?error=datos", request.url));
+  }
+
   const membership = user.memberships.find(
-    (item) => item.group.code === parsed.data.groupCode.toUpperCase(),
+    (item) => item.group.code === groupCode,
   );
   if (!membership) return NextResponse.redirect(new URL("/grupo", request.url));
 

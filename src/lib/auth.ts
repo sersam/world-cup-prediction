@@ -26,7 +26,18 @@ export function normalizeNickname(nickname: string) {
 }
 
 export function normalizeGroupCode(code: string) {
-  return code.trim().toUpperCase().replace(/\s+/g, "-");
+  return code
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function isValidGroupCode(code: string) {
+  return /^[A-Z0-9-]{3,24}$/.test(code);
 }
 
 export async function hashPin(pin: string) {
