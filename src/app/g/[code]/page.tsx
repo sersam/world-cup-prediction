@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
 import { BadgeList } from "@/app/_components/badges";
 import { PredictionScrollRestorer } from "@/app/_components/prediction-scroll-restorer";
+import { StageHistoryScroller } from "@/app/_components/stage-history-scroller";
 import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
 import { buildGroupBadges } from "@/lib/badges";
 import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } from "@/lib/dates";
@@ -28,17 +29,6 @@ function resultText(match: {
   }
 
   return match.status === MatchStatus.IN_PLAY ? "En juego" : "Pendiente";
-}
-
-function predictionText(
-  prediction?: {
-    predictedHome: number;
-    predictedAway: number;
-    points: number;
-  },
-) {
-  if (!prediction) return "Sin prediccion";
-  return `${prediction.predictedHome} - ${prediction.predictedAway} · ${prediction.points} pts`;
 }
 
 function predictionScoreText(
@@ -165,6 +155,8 @@ const stageLabels: Record<string, string> = {
   FINAL: "Final",
 };
 
+const groupStageTotalMatches = 72;
+
 function stageLabel(stage?: string | null) {
   if (!stage) return "Sin fase";
   return stageLabels[stage] ?? stage.replaceAll("_", " ").toLowerCase();
@@ -203,7 +195,7 @@ export default async function GroupHome({
     activeWindowMatches,
     upcomingMatches,
     phaseMatches,
-    finishedMatches,
+    groupStagePlayedCount,
     stageCounts,
     stageReadinessMatches,
   ] = await Promise.all([
@@ -271,20 +263,11 @@ export default async function GroupHome({
           orderBy: { utcDate: "asc" },
         })
       : Promise.resolve([]),
-    prisma.match.findMany({
+    prisma.match.count({
       where: {
+        stage: "GROUP_STAGE",
         status: MatchStatus.FINISHED,
       },
-      include: {
-        predictions: {
-          where: {
-            userId: user.id,
-            groupId: group.id,
-          },
-        },
-      },
-      orderBy: { utcDate: "desc" },
-      take: 24,
     }),
     prisma.match.groupBy({
       by: ["stage"],
@@ -324,10 +307,13 @@ export default async function GroupHome({
       const count = stageCountByName.get(stage) ?? 0;
       const confirmedCount = stageConfirmedCountByName.get(stage) ?? 0;
       const disabled = confirmedCount < count;
+      const countLabel =
+        stage === "GROUP_STAGE" ? `${groupStagePlayedCount}/${groupStageTotalMatches}` : `${count}`;
 
       return {
         confirmedCount,
         count,
+        countLabel,
         disabled,
         href: `/g/${group.code}?fase=${stage}`,
         label: stageLabel(stage),
@@ -336,6 +322,9 @@ export default async function GroupHome({
     });
   const defaultMatches = activeWindowMatches.length > 0 ? activeWindowMatches : upcomingMatches;
   const matches = selectedStage ? phaseMatches : defaultMatches;
+  const latestPlayedMatchId = selectedStage
+    ? phaseMatches.findLast((match) => match.status === MatchStatus.FINISHED)?.id
+    : null;
   const topThree = buildRanking(groupUsers).slice(0, 3);
   const ranking = buildRanking(groupUsers);
   const groupBadges = buildGroupBadges(groupUsers, {
@@ -346,6 +335,9 @@ export default async function GroupHome({
   return (
     <main className="pitch-bg pitch-lines min-h-screen text-[#151515]">
       <PredictionScrollRestorer />
+      <StageHistoryScroller
+        targetId={latestPlayedMatchId ? `match-${latestPlayedMatchId}` : null}
+      />
       <section className="relative z-10 mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-8 px-4 py-6 sm:px-8">
         <header className="brand-panel rounded-xl p-5 md:flex md:items-center md:justify-between">
           <div className="brand-lockup min-w-0">
@@ -450,9 +442,7 @@ export default async function GroupHome({
                       title="Disponible cuando los equipos esten confirmados"
                     >
                       <span>{filter.label}</span>
-                      <span className="phase-pill-count">
-                        {filter.confirmedCount}/{filter.count}
-                      </span>
+                      <span className="phase-pill-count">{filter.countLabel}</span>
                     </span>
                   ) : (
                     <Link
@@ -461,7 +451,7 @@ export default async function GroupHome({
                       key={filter.stage}
                     >
                       <span>{filter.label}</span>
-                      <span className="phase-pill-count">{filter.count}</span>
+                      <span className="phase-pill-count">{filter.countLabel}</span>
                     </Link>
                   ),
                 )}
@@ -478,28 +468,19 @@ export default async function GroupHome({
               <p className="text-sm text-[#5d615f]">
                 {selectedStage
                   ? "Explora los partidos de esta fase y revisa tus predicciones."
-                  : "Puedes editar cada prediccion hasta el inicio del partido."}
+                  : "Puedes editar cada predicción hasta el inicio del partido."}
               </p>
             </div>
 
             {matches.length === 0 ? (
               <div className="glass-panel rounded-lg p-6 text-[#151515]">
                 <h3 className="text-lg font-semibold">
-                  {finishedMatches.length > 0
-                    ? "No hay proximos partidos"
-                    : "No hay partidos sincronizados"}
+                  {selectedStage ? "No hay partidos en esta fase" : "No hay proximos partidos"}
                 </h3>
-                {finishedMatches.length > 0 ? (
-                  <p className="mt-2 text-[#5d615f]">
-                    La sincronizacion actual solo tiene partidos finalizados. Puedes revisarlos en
-                    el historico.
-                  </p>
-                ) : (
-                  <p className="mt-2 text-[#5d615f]">
-                    Configura `FOOTBALL_DATA_API_TOKEN` y ejecuta `POST /api/sync` para cargar el
-                    calendario del Mundial.
-                  </p>
-                )}
+                <p className="mt-2 text-[#5d615f]">
+                  Configura `FOOTBALL_DATA_API_TOKEN` y ejecuta `POST /api/sync` para cargar o
+                  actualizar el calendario del Mundial.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -511,7 +492,8 @@ export default async function GroupHome({
 
                   return (
                     <article
-                      className="match-card min-w-0 rounded-lg p-4 text-[#151515]"
+                      className="match-card min-w-0 scroll-mt-6 rounded-lg p-4 text-[#151515]"
+                      id={match.id === latestPlayedMatchId ? `match-${match.id}` : undefined}
                       key={match.id}
                     >
                       {open ? (
@@ -617,7 +599,7 @@ export default async function GroupHome({
                             </div>
                             <div className="rounded-md bg-white p-3">
                               <p className="text-[10px] font-bold uppercase text-[#5d615f]">
-                                Prediccion
+                                Predicción
                               </p>
                               <p className="mt-1 rounded-md border border-[#d6c7aa] bg-[#fffaf0] px-3 py-2 text-center font-mono text-xl font-black text-[#151515]">
                                 {predictionScoreText(prediction)}
@@ -643,64 +625,6 @@ export default async function GroupHome({
                 })}
               </div>
             )}
-
-            <section className="pt-6">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-2xl font-semibold">Historico de partidos</h2>
-                <p className="text-sm text-[#5d615f]">
-                  Resultados finales y tu prediccion en este grupo.
-                </p>
-              </div>
-
-              {finishedMatches.length === 0 ? (
-                <div className="glass-panel mt-4 rounded-lg p-6 text-[#151515]">
-                  <h3 className="text-lg font-semibold">Todavia no hay partidos finalizados</h3>
-                  <p className="mt-2 text-[#5d615f]">
-                    Cuando la API marque partidos como finalizados, apareceran aqui con su
-                    resultado.
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-4 space-y-3">
-                  {finishedMatches.map((match) => {
-                    const prediction = match.predictions[0];
-                    const homeTeamName = teamNameEsFromCode(match.homeTeamCode, match.homeTeam);
-                    const awayTeamName = teamNameEsFromCode(match.awayTeamCode, match.awayTeam);
-
-                    return (
-                      <article
-                        className="match-card min-w-0 rounded-lg p-4 text-[#151515]"
-                        key={match.id}
-                      >
-                        <p className="text-sm font-medium text-[#5d615f]">
-                          {formatMatchDate(match.utcDate)}
-                        </p>
-                        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <h3 className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-semibold">
-                            <FlagBall code={match.homeTeamCode} label={homeTeamName} small />
-                            <span className="min-w-0 break-words">{homeTeamName}</span>
-                            <span className="rounded-full bg-[#eaf1ff] px-2 py-1 text-xs font-bold text-[#007a3d]">
-                              vs
-                            </span>
-                            <FlagBall code={match.awayTeamCode} label={awayTeamName} small />
-                            <span className="min-w-0 break-words">{awayTeamName}</span>
-                          </h3>
-                          <p className="rounded-md bg-[#151515] px-3 py-2 text-center font-mono text-lg font-bold text-[#f2b705]">
-                            {resultText(match)}
-                          </p>
-                        </div>
-                        <p className="mt-3 min-w-0 rounded-md bg-[#fff4d6] px-3 py-2 text-sm text-[#5d615f]">
-                          Tu prediccion:{" "}
-                          <span className="font-semibold text-[#1d1b16]">
-                            {predictionText(prediction)}
-                          </span>
-                        </p>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
           </div>
 
           <aside className="glass-panel min-w-0 rounded-lg p-5 text-[#151515]">

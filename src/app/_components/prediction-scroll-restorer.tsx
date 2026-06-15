@@ -30,8 +30,10 @@ export function PredictionScrollRestorer() {
       return;
     }
 
+    document.documentElement.dataset.predictionScrollRestored = "true";
     window.scrollTo({ top, behavior: "smooth" });
     window.setTimeout(() => {
+      delete document.documentElement.dataset.predictionScrollRestored;
       setIsRestoring(false);
     }, 250);
   }, []);

@@ -1,4 +1,4 @@
-# Prediccion Mundial
+# Predicción Mundial
 
 App web full-stack para predicciones del Mundial por grupos. El usuario se registra
 con usuario + contrasena, puede crear o unirse a varios grupos, moverse entre ellos,

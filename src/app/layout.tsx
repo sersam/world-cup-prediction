@@ -26,7 +26,7 @@ const fixture = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Prediccion Mundial",
+  title: "Predicción Mundial",
   description: "Predicciones por grupos para el Mundial",
   icons: {
     icon: "/icon.svg",
