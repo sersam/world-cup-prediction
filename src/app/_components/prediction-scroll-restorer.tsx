@@ -30,10 +30,10 @@ export function PredictionScrollRestorer() {
       return;
     }
 
-    window.scrollTo(0, top);
-    requestAnimationFrame(() => {
+    window.scrollTo({ top, behavior: "smooth" });
+    window.setTimeout(() => {
       setIsRestoring(false);
-    });
+    }, 250);
   }, []);
 
   useEffect(() => {
@@ -54,10 +54,9 @@ export function PredictionScrollRestorer() {
   if (!isRestoring) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#fffaf0]/95 text-[#151515] backdrop-blur-sm">
-      <div className="grid justify-items-center gap-5 text-center">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#fffaf0]/70 text-[#151515] backdrop-blur-[2px]">
+      <div className="grid justify-items-center text-center">
         <span className="worldcup-saving-spinner" aria-hidden="true" />
-        <span className="saving-overlay-text">Guardando tu predicción...</span>
       </div>
     </div>
   );
