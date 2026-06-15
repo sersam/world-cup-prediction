@@ -166,8 +166,41 @@ a:hover {
   }
 }
 
+.worldcup-saving-spinner {
+  animation: worldcup-spinner-turn 850ms linear infinite;
+  background:
+    conic-gradient(
+      from 0deg,
+      var(--wc-red) 0deg 72deg,
+      var(--wc-gold) 72deg 144deg,
+      var(--wc-green) 144deg 216deg,
+      var(--wc-blue) 216deg 288deg,
+      var(--wc-ink) 288deg 360deg
+    );
+  border-radius: 999px;
+  box-shadow: 0 18px 38px rgba(21, 21, 21, 0.18);
+  display: inline-block;
+  height: 4.75rem;
+  mask: radial-gradient(circle, transparent 0 42%, #000 43%);
+  width: 4.75rem;
+}
+
+.saving-overlay-text {
+  color: var(--wc-ink);
+  font-size: clamp(1.35rem, 2.8vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+@keyframes worldcup-spinner-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .live-ball {
+  .live-ball,
+  .worldcup-saving-spinner {
     animation: none;
   }
 }

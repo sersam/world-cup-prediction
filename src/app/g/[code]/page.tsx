@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
 import { BadgeList } from "@/app/_components/badges";
+import { PredictionScrollRestorer } from "@/app/_components/prediction-scroll-restorer";
 import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
 import { buildGroupBadges } from "@/lib/badges";
 import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } from "@/lib/dates";
@@ -344,6 +345,7 @@ export default async function GroupHome({
 
   return (
     <main className="pitch-bg pitch-lines min-h-screen text-[#151515]">
+      <PredictionScrollRestorer />
       <section className="relative z-10 mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-8 px-4 py-6 sm:px-8">
         <header className="brand-panel rounded-xl p-5 md:flex md:items-center md:justify-between">
           <div className="brand-lockup min-w-0">
@@ -513,7 +515,12 @@ export default async function GroupHome({
                       key={match.id}
                     >
                       {open ? (
-                        <form action="/api/predictions" className="grid gap-3" method="post">
+                        <form
+                          action="/api/predictions"
+                          className="grid gap-3"
+                          data-preserve-scroll="true"
+                          method="post"
+                        >
                           <input name="matchId" type="hidden" value={match.id} />
                           <input name="groupCode" type="hidden" value={group.code} />
                           <div className="flex flex-wrap items-center justify-between gap-2">
