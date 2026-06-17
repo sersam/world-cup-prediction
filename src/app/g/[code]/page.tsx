@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
 import { BadgeList } from "@/app/_components/badges";
+import { MatchAutoRefresher } from "@/app/_components/match-auto-refresher";
 import { PredictionScrollRestorer } from "@/app/_components/prediction-scroll-restorer";
 import { StageHistoryScroller } from "@/app/_components/stage-history-scroller";
 import { getCurrentUser, normalizeGroupCode } from "@/lib/auth";
@@ -156,10 +157,26 @@ const stageLabels: Record<string, string> = {
 };
 
 const groupStageTotalMatches = 72;
+const matchSyncLookaheadMs = 15 * 60 * 1000;
+const matchSyncFollowUpMs = 240 * 60 * 1000;
 
 function stageLabel(stage?: string | null) {
   if (!stage) return "Sin fase";
   return stageLabels[stage] ?? stage.replaceAll("_", " ").toLowerCase();
+}
+
+function isMatchInSyncWindow(match: { status: MatchStatus; utcDate: Date }, now = new Date()) {
+  if (match.status === MatchStatus.IN_PLAY || match.status === MatchStatus.PAUSED) {
+    return true;
+  }
+
+  const matchTime = match.utcDate.getTime();
+  const nowTime = now.getTime();
+
+  return (
+    nowTime >= matchTime - matchSyncLookaheadMs &&
+    nowTime <= matchTime + matchSyncFollowUpMs
+  );
 }
 
 export default async function GroupHome({
@@ -322,6 +339,7 @@ export default async function GroupHome({
     });
   const defaultMatches = activeWindowMatches.length > 0 ? activeWindowMatches : upcomingMatches;
   const matches = selectedStage ? phaseMatches : defaultMatches;
+  const shouldAutoRefreshMatches = matches.some((match) => isMatchInSyncWindow(match));
   const latestPlayedMatchId = selectedStage
     ? phaseMatches.findLast((match) => match.status === MatchStatus.FINISHED)?.id
     : null;
@@ -335,6 +353,7 @@ export default async function GroupHome({
   return (
     <main className="pitch-bg pitch-lines min-h-screen text-[#151515]">
       <PredictionScrollRestorer />
+      <MatchAutoRefresher enabled={shouldAutoRefreshMatches} />
       <StageHistoryScroller
         targetId={latestPlayedMatchId ? `match-${latestPlayedMatchId}` : null}
       />

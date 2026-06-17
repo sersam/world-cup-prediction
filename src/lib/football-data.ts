@@ -49,7 +49,7 @@ export async function fetchWorldCupMatches(): Promise<SyncedMatch[]> {
 
   const response = await fetch("https://api.football-data.org/v4/competitions/WC/matches", {
     headers: { "X-Auth-Token": token },
-    next: { revalidate: 60 * 30 },
+    cache: "no-store",
   });
 
   if (!response.ok) {

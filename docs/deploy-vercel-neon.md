@@ -39,6 +39,7 @@ DATABASE_URL="postgresql://..."
 FOOTBALL_DATA_API_TOKEN="..."
 SESSION_SECRET="genera-un-secreto-largo"
 SYNC_SECRET="genera-otro-secreto-largo"
+CRON_SECRET="genera-un-secreto-para-github-actions"
 APP_TIMEZONE="Europe/Madrid"
 ```
 
@@ -73,11 +74,25 @@ curl -X POST https://TU-DOMINIO.vercel.app/api/sync \
 
 Esto cargara o actualizara partidos desde `football-data.org`.
 
-## 7. Checklist de produccion
+## 7. Activar sincronizacion frecuente con GitHub Actions
+
+El workflow `.github/workflows/sync-matches.yml` llama a `/api/sync` cada 5 minutos.
+Configura estos secrets en GitHub Actions:
+
+```bash
+SYNC_URL="https://TU-DOMINIO.vercel.app/api/sync"
+CRON_SECRET="el-mismo-valor-que-la-variable-CRON_SECRET-del-deploy"
+```
+
+El endpoint usa sincronizacion inteligente: si no hay partidos cercanos, en directo o
+recien terminados, responde sin consultar `football-data.org`.
+
+## 8. Checklist de produccion
 
 - `.env` no esta en Git.
-- `SESSION_SECRET` y `SYNC_SECRET` son largos y distintos.
+- `SESSION_SECRET`, `SYNC_SECRET` y `CRON_SECRET` son largos y distintos.
 - `DATABASE_URL` apunta a Postgres cloud, no a localhost.
 - `npx prisma migrate deploy` se ejecuto correctamente.
 - `/api/sync` devuelve `{ "synced": ... }`.
+- GitHub Actions tiene `SYNC_URL` y `CRON_SECRET` configurados.
 - La pantalla principal permite crear usuario, grupo y predicciones.
