@@ -63,7 +63,7 @@ Si defines `SYNC_SECRET`, envia tambien:
 curl -X POST http://localhost:3000/api/sync -H "x-sync-secret: tu-secreto"
 ```
 
-En produccion, el workflow `.github/workflows/sync-matches.yml` llama a este endpoint cada
+En produccion, el workflow `.github/workflows/sync-matches-cron.yml` llama a este endpoint cada
 5 minutos usando estos secretos de GitHub Actions:
 
 - `SYNC_URL`: URL completa del endpoint, por ejemplo `https://tu-dominio.vercel.app/api/sync`.

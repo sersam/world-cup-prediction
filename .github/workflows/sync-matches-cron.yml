@@ -1,4 +1,4 @@
-name: Sync matches
+name: Sync matches cron
 
 on:
   schedule:

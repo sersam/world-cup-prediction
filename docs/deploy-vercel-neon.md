@@ -76,7 +76,7 @@ Esto cargara o actualizara partidos desde `football-data.org`.
 
 ## 7. Activar sincronizacion frecuente con GitHub Actions
 
-El workflow `.github/workflows/sync-matches.yml` llama a `/api/sync` cada 5 minutos.
+El workflow `.github/workflows/sync-matches-cron.yml` llama a `/api/sync` cada 5 minutos.
 Configura estos secrets en GitHub Actions:
 
 ```bash
