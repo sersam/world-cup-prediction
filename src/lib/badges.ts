@@ -1,10 +1,18 @@
 import type { RankingEntry } from "@/lib/scoring";
 
-export type BadgeId = "hunter" | "exact" | "streak3" | "streak5" | "streak10";
+export type BadgeId =
+  | "hunter"
+  | "exact"
+  | "exact3"
+  | "exact5"
+  | "exact10"
+  | "streak3"
+  | "streak5"
+  | "streak10";
 
 export type Badge = {
   id: BadgeId;
-  icon: "bolt" | "target" | "flame3" | "flame5" | "flame10";
+  icon: "bolt" | "target" | "target3" | "target5" | "target10" | "flame3" | "flame5" | "flame10";
   label: string;
   description: string;
   tone: "blue" | "green" | "red" | "gold" | "dark";
@@ -41,6 +49,27 @@ const badgeDefinitions: Record<BadgeId, Badge> = {
     label: "Exacto",
     description: "Ha acertado un marcador exacto.",
     tone: "green",
+  },
+  exact3: {
+    id: "exact3",
+    icon: "target3",
+    label: "Exacto x3",
+    description: "Ha acertado 3 marcadores exactos.",
+    tone: "blue",
+  },
+  exact5: {
+    id: "exact5",
+    icon: "target5",
+    label: "Exacto x5",
+    description: "Ha acertado 5 marcadores exactos.",
+    tone: "red",
+  },
+  exact10: {
+    id: "exact10",
+    icon: "target10",
+    label: "Exacto x10",
+    description: "Ha acertado 10 marcadores exactos.",
+    tone: "gold",
   },
   streak3: {
     id: "streak3",
@@ -94,7 +123,15 @@ export function buildUserBadges(user: BadgeUser, context: BadgeContext): Badge[]
     badges.push(badgeDefinitions.hunter);
   }
 
-  if (user.predictions.some((prediction) => prediction.points >= 10)) {
+  const exactResults = user.predictions.filter((prediction) => prediction.points >= 10).length;
+
+  if (exactResults >= 10) {
+    badges.push(badgeDefinitions.exact10);
+  } else if (exactResults >= 5) {
+    badges.push(badgeDefinitions.exact5);
+  } else if (exactResults >= 3) {
+    badges.push(badgeDefinitions.exact3);
+  } else if (exactResults >= 1) {
     badges.push(badgeDefinitions.exact);
   }
 
@@ -102,13 +139,9 @@ export function buildUserBadges(user: BadgeUser, context: BadgeContext): Badge[]
 
   if (scoringStreak >= 10) {
     badges.push(badgeDefinitions.streak10);
-  }
-
-  if (scoringStreak >= 5) {
+  } else if (scoringStreak >= 5) {
     badges.push(badgeDefinitions.streak5);
-  }
-
-  if (scoringStreak >= 3) {
+  } else if (scoringStreak >= 3) {
     badges.push(badgeDefinitions.streak3);
   }
 

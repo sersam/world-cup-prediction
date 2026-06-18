@@ -9,12 +9,20 @@ function BadgeSvg({ icon }: { icon: Badge["icon"] }) {
     );
   }
 
-  if (icon === "target") {
+  if (icon === "target" || icon === "target3" || icon === "target5" || icon === "target10") {
+    const exactNumber = icon === "target" ? null : icon.replace("target", "");
+
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24">
         <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
         <path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
-        <path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+        {exactNumber ? (
+          <text className="badge-exact-number" x="12" y="14.5">
+            {exactNumber}
+          </text>
+        ) : (
+          <path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+        )}
       </svg>
     );
   }

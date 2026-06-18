@@ -20,6 +20,25 @@ describe("buildUserBadges", () => {
     expect(badges.map((badge) => badge.id)).toEqual(["exact"]);
   });
 
+  it.each([
+    { count: 3, expected: "exact3" },
+    { count: 5, expected: "exact5" },
+    { count: 10, expected: "exact10" },
+  ])("keeps only the best exact badge for $count exact results", ({ count, expected }) => {
+    const badges = buildUserBadges(
+      {
+        id: "1",
+        predictions: Array.from({ length: count }, (_, index) => ({
+          points: 10,
+          matchId: String(index),
+        })),
+      },
+      { ranking },
+    );
+
+    expect(badges.map((badge) => badge.id)).toEqual([expected]);
+  });
+
   it("awards hunter when a user is close to the leader", () => {
     const badges = buildUserBadges(
       {
@@ -48,7 +67,7 @@ describe("buildUserBadges", () => {
     expect(badges.map((badge) => badge.id)).toContain("streak3");
   });
 
-  it("awards streak tiers for five and ten scoring predictions", () => {
+  it("keeps only the best streak badge", () => {
     const predictions = Array.from({ length: 10 }, (_, index) => ({
       points: index === 0 ? 10 : 5,
       matchId: String(index),
@@ -63,11 +82,24 @@ describe("buildUserBadges", () => {
       { ranking },
     );
 
-    expect(badges.map((badge) => badge.id)).toEqual([
-      "exact",
-      "streak10",
-      "streak5",
-      "streak3",
-    ]);
+    expect(badges.map((badge) => badge.id)).toEqual(["exact", "streak10"]);
+  });
+
+  it("replaces streak x3 with streak x5", () => {
+    const predictions = Array.from({ length: 5 }, (_, index) => ({
+      points: 5,
+      matchId: String(index),
+      match: { utcDate: new Date(Date.UTC(2026, 5, index + 1, 12)) },
+    }));
+
+    const badges = buildUserBadges(
+      {
+        id: "3",
+        predictions,
+      },
+      { ranking },
+    );
+
+    expect(badges.map((badge) => badge.id)).toEqual(["streak5"]);
   });
 });
