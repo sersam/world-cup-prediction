@@ -13,7 +13,7 @@ import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } 
 import { flagFromTeamCode, flagImageSrcFromTeamCode, teamNameEsFromCode } from "@/lib/flags";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
-import { getQualifiedSideFromResult, isPenaltyShootoutResult } from "@/lib/scoring";
+import { getQualifiedSideFromResult } from "@/lib/scoring";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +35,7 @@ function resultText(match: {
 
 type PenaltyResultMatch = {
   status: MatchStatus;
+  stage: string | null;
   scoreWinner: string | null;
   scoreDuration: string | null;
   penaltyHomeGoals: number | null;
@@ -54,7 +55,10 @@ function penaltyText(match: PenaltyResultMatch) {
 }
 
 function classifiedSide(match: PenaltyResultMatch): "HOME" | "AWAY" | null {
-  if (match.status !== MatchStatus.FINISHED || !isPenaltyShootoutResult(match)) return null;
+  if (match.status !== MatchStatus.FINISHED || !match.stage || match.stage === "GROUP_STAGE") {
+    return null;
+  }
+
   return getQualifiedSideFromResult(match);
 }
 
