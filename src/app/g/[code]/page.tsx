@@ -13,6 +13,7 @@ import { formatMatchDate, getTodayWindow, getTomorrowWindow, isPredictionOpen } 
 import { flagFromTeamCode, flagImageSrcFromTeamCode, teamNameEsFromCode } from "@/lib/flags";
 import { prisma } from "@/lib/prisma";
 import { buildRanking } from "@/lib/rankings";
+import { getQualifiedSideFromResult, isPenaltyShootoutResult } from "@/lib/scoring";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,31 @@ function resultText(match: {
   return match.status === MatchStatus.IN_PLAY ? "En juego" : "Pendiente";
 }
 
+type PenaltyResultMatch = {
+  status: MatchStatus;
+  scoreWinner: string | null;
+  scoreDuration: string | null;
+  penaltyHomeGoals: number | null;
+  penaltyAwayGoals: number | null;
+};
+
+function penaltyText(match: PenaltyResultMatch) {
+  if (
+    match.status === MatchStatus.FINISHED &&
+    match.penaltyHomeGoals !== null &&
+    match.penaltyAwayGoals !== null
+  ) {
+    return `(${match.penaltyHomeGoals}-${match.penaltyAwayGoals})`;
+  }
+
+  return null;
+}
+
+function classifiedSide(match: PenaltyResultMatch): "HOME" | "AWAY" | null {
+  if (match.status !== MatchStatus.FINISHED || !isPenaltyShootoutResult(match)) return null;
+  return getQualifiedSideFromResult(match);
+}
+
 function predictionScoreText(
   prediction?: {
     predictedHome: number;
@@ -48,8 +74,9 @@ function pointsBadgeText(points?: number) {
 }
 
 function pointsBadgeClass(points?: number) {
-  if (points === 10) return "bg-[#f2b705] text-[#151515]";
-  if (points === 5) return "bg-[#dff5e8] text-[#005735]";
+  if (points !== undefined && points >= 10) return "bg-[#f2b705] text-[#151515]";
+  if (points !== undefined && points >= 5) return "bg-[#dff5e8] text-[#005735]";
+  if (points !== undefined && points > 0) return "bg-[#eaf1ff] text-[#005a9c]";
   return "bg-[#a7aaa7] text-white";
 }
 
@@ -107,6 +134,44 @@ function FlagBall({
       )}
     </span>
   );
+}
+
+function ClassifiedBadge() {
+  return (
+    <span className="inline-flex flex-none items-center rounded-full bg-[#007a3d] px-2 py-1 text-[10px] font-black uppercase text-white">
+      Clasifica
+    </span>
+  );
+}
+
+function TeamIdentity({
+  code,
+  label,
+  qualified = false,
+}: {
+  code?: string | null;
+  label: string;
+  qualified?: boolean;
+}) {
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <FlagBall code={code} label={label} small />
+      <span className="min-w-0 break-words text-lg font-semibold">{label}</span>
+      {qualified ? <ClassifiedBadge /> : null}
+    </span>
+  );
+}
+
+function qualifiedTeamClass(qualified: boolean) {
+  return qualified
+    ? "border-[#007a3d] bg-[#f3fff8] ring-1 ring-[#007a3d]/30"
+    : "border-[#e7dcc6] bg-white";
+}
+
+function teamContainerClass(qualified: boolean) {
+  return `flex min-w-0 items-center gap-2 rounded-lg border px-3 py-2 ${qualifiedTeamClass(
+    qualified
+  )}`;
 }
 
 const podiumConfig = [
@@ -508,6 +573,8 @@ export default async function GroupHome({
                   const open = isPredictionOpen(match.utcDate);
                   const homeTeamName = teamNameEsFromCode(match.homeTeamCode, match.homeTeam);
                   const awayTeamName = teamNameEsFromCode(match.awayTeamCode, match.awayTeam);
+                  const qualifiedSide = classifiedSide(match);
+                  const penalties = penaltyText(match);
 
                   return (
                     <article
@@ -533,13 +600,16 @@ export default async function GroupHome({
                             </span>
                           </div>
                           <div className="grid gap-2">
-                            <label className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-[#e7dcc6] bg-white px-3 py-2">
-                              <span className="flex min-w-0 items-center gap-2">
-                                <FlagBall code={match.homeTeamCode} label={homeTeamName} small />
-                                <span className="min-w-0 break-words text-lg font-semibold">
-                                  {homeTeamName}
-                                </span>
-                              </span>
+                            <label
+                              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border px-3 py-2 ${qualifiedTeamClass(
+                                qualifiedSide === "HOME",
+                              )}`}
+                            >
+                              <TeamIdentity
+                                code={match.homeTeamCode}
+                                label={homeTeamName}
+                                qualified={qualifiedSide === "HOME"}
+                              />
                               <span className="grid gap-1 text-center text-[10px] font-semibold uppercase text-[#5d615f]">
                                 Local
                                 <input
@@ -552,13 +622,16 @@ export default async function GroupHome({
                                 />
                               </span>
                             </label>
-                            <label className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-[#e7dcc6] bg-white px-3 py-2">
-                              <span className="flex min-w-0 items-center gap-2">
-                                <FlagBall code={match.awayTeamCode} label={awayTeamName} small />
-                                <span className="min-w-0 break-words text-lg font-semibold">
-                                  {awayTeamName}
-                                </span>
-                              </span>
+                            <label
+                              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border px-3 py-2 ${qualifiedTeamClass(
+                                qualifiedSide === "AWAY",
+                              )}`}
+                            >
+                              <TeamIdentity
+                                code={match.awayTeamCode}
+                                label={awayTeamName}
+                                qualified={qualifiedSide === "AWAY"}
+                              />
                               <span className="grid gap-1 text-center text-[10px] font-semibold uppercase text-[#5d615f]">
                                 Visit.
                                 <input
@@ -594,17 +667,19 @@ export default async function GroupHome({
                             </span>
                           </div>
                           <div className="grid gap-2">
-                            <div className="flex min-w-0 items-center gap-2 rounded-lg border border-[#e7dcc6] bg-white px-3 py-2">
-                              <FlagBall code={match.homeTeamCode} label={homeTeamName} small />
-                              <span className="min-w-0 break-words text-lg font-semibold">
-                                {homeTeamName}
-                              </span>
+                            <div className={teamContainerClass(qualifiedSide === "HOME")}>
+                              <TeamIdentity
+                                code={match.homeTeamCode}
+                                label={homeTeamName}
+                                qualified={qualifiedSide === "HOME"}
+                              />
                             </div>
-                            <div className="flex min-w-0 items-center gap-2 rounded-lg border border-[#e7dcc6] bg-white px-3 py-2">
-                              <FlagBall code={match.awayTeamCode} label={awayTeamName} small />
-                              <span className="min-w-0 break-words text-lg font-semibold">
-                                {awayTeamName}
-                              </span>
+                            <div className={teamContainerClass(qualifiedSide === "AWAY")}>
+                              <TeamIdentity
+                                code={match.awayTeamCode}
+                                label={awayTeamName}
+                                qualified={qualifiedSide === "AWAY"}
+                              />
                             </div>
                           </div>
                           <div className="grid gap-2 rounded-md bg-[#fff4d6] p-2 text-sm text-[#5d615f] sm:grid-cols-3">
@@ -612,17 +687,24 @@ export default async function GroupHome({
                               <p className="text-[10px] font-bold uppercase text-[#5d615f]">
                                 Real
                               </p>
-                              <p className="mt-1 rounded-md bg-[#151515] px-3 py-2 text-center font-mono text-xl font-black text-[#f2b705]">
-                                {resultText(match)}
-                              </p>
+                              <div className="mt-1 rounded-md bg-[#151515] px-3 py-2 text-center font-mono font-black text-[#f2b705]">
+                                <p className="text-xl">{resultText(match)}</p>
+                                {penalties ? (
+                                  <p className="mt-0.5 text-xs leading-none text-white">
+                                    {penalties}
+                                  </p>
+                                ) : null}
+                              </div>
                             </div>
                             <div className="rounded-md bg-white p-3">
                               <p className="text-[10px] font-bold uppercase text-[#5d615f]">
                                 Predicción
                               </p>
-                              <p className="mt-1 rounded-md border border-[#d6c7aa] bg-[#fffaf0] px-3 py-2 text-center font-mono text-xl font-black text-[#151515]">
-                                {predictionScoreText(prediction)}
-                              </p>
+                              <div className="mt-1 rounded-md border border-[#d6c7aa] bg-[#fffaf0] px-3 py-2 text-center">
+                                <p className="font-mono text-xl font-black text-[#151515]">
+                                  {predictionScoreText(prediction)}
+                                </p>
+                              </div>
                             </div>
                             <div className="rounded-md bg-white p-3">
                               <p className="text-[10px] font-bold uppercase text-[#5d615f]">
@@ -687,6 +769,17 @@ export default async function GroupHome({
                   <div className="min-w-0">
                     <p className="font-semibold">Signo 1X2 correcto</p>
                     <p className="text-xs text-[#5d615f]">Victoria, derrota o empate acertado.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 rounded-md bg-white p-3">
+                  <span className="flex h-11 w-14 flex-none items-center justify-center rounded-md bg-[#eaf1ff] font-mono text-xl font-black text-[#005a9c]">
+                    +2
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold">Clasificado correcto</p>
+                    <p className="text-xs text-[#5d615f]">
+                      Si tu ganador pasa tras empate y penaltis.
+                    </p>
                   </div>
                 </div>
               </div>

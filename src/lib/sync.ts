@@ -1,6 +1,10 @@
 import { MatchStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { calculatePredictionPoints } from "@/lib/scoring";
+import {
+  calculatePredictionPoints,
+  getQualifiedSideFromResult,
+  isPenaltyShootoutResult,
+} from "@/lib/scoring";
 import { fetchWorldCupMatches } from "@/lib/football-data";
 
 const SMART_SYNC_LOOKAHEAD_MINUTES = 15;
@@ -103,11 +107,16 @@ export async function scoreFinishedPredictions() {
       prediction.match.finalAwayGoals !== null;
 
     const points = calculatePredictionPoints(
-      { home: prediction.predictedHome, away: prediction.predictedAway },
+      {
+        home: prediction.predictedHome,
+        away: prediction.predictedAway,
+      },
       hasResult
         ? {
             home: prediction.match.finalHomeGoals ?? 0,
             away: prediction.match.finalAwayGoals ?? 0,
+            decidedByPenalties: isPenaltyShootoutResult(prediction.match),
+            qualifiedSide: getQualifiedSideFromResult(prediction.match),
           }
         : null,
     );

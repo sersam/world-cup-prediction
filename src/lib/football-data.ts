@@ -10,7 +10,13 @@ type FootballDataMatch = {
   homeTeam: { name?: string | null; tla?: string | null };
   awayTeam: { name?: string | null; tla?: string | null };
   score?: {
+    winner?: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
+    duration?: string | null;
     fullTime?: {
+      home?: number | null;
+      away?: number | null;
+    };
+    penalties?: {
       home?: number | null;
       away?: number | null;
     };
@@ -35,6 +41,10 @@ export type SyncedMatch = {
   groupName: string | null;
   finalHomeGoals: number | null;
   finalAwayGoals: number | null;
+  scoreWinner: string | null;
+  scoreDuration: string | null;
+  penaltyHomeGoals: number | null;
+  penaltyAwayGoals: number | null;
 };
 
 function toMatchStatus(status: string): MatchStatus {
@@ -60,6 +70,7 @@ export async function fetchWorldCupMatches(): Promise<SyncedMatch[]> {
 
   return payload.matches.map((match) => {
     const finalScore = match.score?.fullTime;
+    const penaltyScore = match.score?.penalties;
     const status = toMatchStatus(match.status);
     const isFinished = status === MatchStatus.FINISHED;
 
@@ -77,6 +88,10 @@ export async function fetchWorldCupMatches(): Promise<SyncedMatch[]> {
       groupName: match.group ?? null,
       finalHomeGoals: isFinished ? finalScore?.home ?? null : null,
       finalAwayGoals: isFinished ? finalScore?.away ?? null : null,
+      scoreWinner: isFinished ? match.score?.winner ?? null : null,
+      scoreDuration: isFinished ? match.score?.duration ?? null : null,
+      penaltyHomeGoals: isFinished ? penaltyScore?.home ?? null : null,
+      penaltyAwayGoals: isFinished ? penaltyScore?.away ?? null : null,
     };
   });
 }

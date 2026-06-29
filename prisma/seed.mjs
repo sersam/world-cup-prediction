@@ -77,6 +77,10 @@ for (const match of matches) {
       status: MatchStatus.SCHEDULED,
       finalHomeGoals: null,
       finalAwayGoals: null,
+      scoreWinner: null,
+      scoreDuration: null,
+      penaltyHomeGoals: null,
+      penaltyAwayGoals: null,
     },
   });
 }

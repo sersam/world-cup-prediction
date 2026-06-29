@@ -3,7 +3,11 @@ import { z } from "zod";
 import { getCurrentUser, isValidGroupCode, normalizeGroupCode } from "@/lib/auth";
 import { isPredictionOpen } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
-import { calculatePredictionPoints } from "@/lib/scoring";
+import {
+  calculatePredictionPoints,
+  getQualifiedSideFromResult,
+  isPenaltyShootoutResult,
+} from "@/lib/scoring";
 
 const predictionSchema = z.object({
   groupCode: z.string().min(3).max(24),
@@ -48,9 +52,17 @@ export async function POST(request: Request) {
 
   const hasResult = match.finalHomeGoals !== null && match.finalAwayGoals !== null;
   const points = calculatePredictionPoints(
-    { home: parsed.data.predictedHome, away: parsed.data.predictedAway },
+    {
+      home: parsed.data.predictedHome,
+      away: parsed.data.predictedAway,
+    },
     hasResult
-      ? { home: match.finalHomeGoals ?? 0, away: match.finalAwayGoals ?? 0 }
+      ? {
+          home: match.finalHomeGoals ?? 0,
+          away: match.finalAwayGoals ?? 0,
+          decidedByPenalties: isPenaltyShootoutResult(match),
+          qualifiedSide: getQualifiedSideFromResult(match),
+        }
       : null,
   );
 
