@@ -16,6 +16,14 @@ type FootballDataMatch = {
       home?: number | null;
       away?: number | null;
     };
+    regularTime?: {
+      home?: number | null;
+      away?: number | null;
+    };
+    extraTime?: {
+      home?: number | null;
+      away?: number | null;
+    };
     penalties?: {
       home?: number | null;
       away?: number | null;
@@ -51,6 +59,66 @@ function toMatchStatus(status: string): MatchStatus {
   return status in MatchStatus ? (status as MatchStatus) : MatchStatus.SCHEDULED;
 }
 
+type FootballDataScore = NonNullable<FootballDataMatch["score"]>;
+type FootballDataScorePart = NonNullable<FootballDataScore["fullTime"]>;
+
+function scoreValue(score: FootballDataScorePart | undefined, side: "home" | "away") {
+  return score?.[side] ?? null;
+}
+
+function combineScores(
+  first: FootballDataScorePart | undefined,
+  second: FootballDataScorePart | undefined,
+) {
+  const home = (scoreValue(first, "home") ?? 0) + (scoreValue(second, "home") ?? 0);
+  const away = (scoreValue(first, "away") ?? 0) + (scoreValue(second, "away") ?? 0);
+
+  if (
+    scoreValue(first, "home") === null &&
+    scoreValue(first, "away") === null &&
+    scoreValue(second, "home") === null &&
+    scoreValue(second, "away") === null
+  ) {
+    return null;
+  }
+
+  return { home, away };
+}
+
+function matchScoreFromScore(score: FootballDataScore | undefined) {
+  if (!score) return null;
+
+  const matchScore = scoreBeforePenaltiesFromScore(score);
+  if (matchScore) return matchScore;
+
+  return score.fullTime ?? null;
+}
+
+function scoreBeforePenaltiesFromScore(score: FootballDataScore) {
+  return combineScores(score.regularTime, score.extraTime);
+}
+
+function penaltyScoreFromScore(score: FootballDataScore | undefined) {
+  if (!score || score.duration !== "PENALTY_SHOOTOUT") return null;
+
+  const scoreBeforePenalties = scoreBeforePenaltiesFromScore(score);
+  if (
+    score.fullTime &&
+    scoreBeforePenalties &&
+    score.fullTime.home !== null &&
+    score.fullTime.home !== undefined &&
+    score.fullTime.away !== null &&
+    score.fullTime.away !== undefined
+  ) {
+    return {
+      home: score.fullTime.home - scoreBeforePenalties.home,
+      away: score.fullTime.away - scoreBeforePenalties.away,
+    };
+  }
+
+  return score.penalties ?? null;
+}
+
 export async function fetchWorldCupMatches(): Promise<SyncedMatch[]> {
   const token = process.env.FOOTBALL_DATA_API_TOKEN;
   if (!token) {
@@ -69,8 +137,8 @@ export async function fetchWorldCupMatches(): Promise<SyncedMatch[]> {
   const payload = (await response.json()) as FootballDataResponse;
 
   return payload.matches.map((match) => {
-    const finalScore = match.score?.fullTime;
-    const penaltyScore = match.score?.penalties;
+    const finalScore = matchScoreFromScore(match.score);
+    const penaltyScore = penaltyScoreFromScore(match.score);
     const status = toMatchStatus(match.status);
     const isFinished = status === MatchStatus.FINISHED;
 

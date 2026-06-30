@@ -51,6 +51,91 @@ describe("fetchWorldCupMatches", () => {
     ]);
   });
 
+  it("derives match and shootout scores when fullTime includes penalties", async () => {
+    process.env.FOOTBALL_DATA_API_TOKEN = "test-token";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          matches: [
+            {
+              id: 3,
+              utcDate: "2026-06-30T01:00:00Z",
+              status: "FINISHED",
+              stage: "LAST_32",
+              homeTeam: { name: "Netherlands", tla: "NED" },
+              awayTeam: { name: "Morocco", tla: "MAR" },
+              score: {
+                winner: null,
+                duration: "PENALTY_SHOOTOUT",
+                fullTime: { home: 3, away: 4 },
+                regularTime: { home: 1, away: 1 },
+                extraTime: { home: 0, away: 0 },
+                penalties: { home: 3, away: 3 },
+              },
+            },
+          ],
+        }),
+      }),
+    );
+
+    await expect(fetchWorldCupMatches()).resolves.toMatchObject([
+      {
+        externalId: 3,
+        status: MatchStatus.FINISHED,
+        finalHomeGoals: 1,
+        finalAwayGoals: 1,
+        scoreWinner: null,
+        scoreDuration: "PENALTY_SHOOTOUT",
+        penaltyHomeGoals: 2,
+        penaltyAwayGoals: 3,
+      },
+    ]);
+  });
+
+  it("uses regular time plus extra time as the final score when available", async () => {
+    process.env.FOOTBALL_DATA_API_TOKEN = "test-token";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          matches: [
+            {
+              id: 4,
+              utcDate: "2026-07-02T20:00:00Z",
+              status: "FINISHED",
+              stage: "LAST_32",
+              homeTeam: { name: "Espana", tla: "ESP" },
+              awayTeam: { name: "Portugal", tla: "POR" },
+              score: {
+                winner: "HOME_TEAM",
+                duration: "EXTRA_TIME",
+                fullTime: { home: 2, away: 1 },
+                regularTime: { home: 1, away: 1 },
+                extraTime: { home: 1, away: 0 },
+              },
+            },
+          ],
+        }),
+      }),
+    );
+
+    await expect(fetchWorldCupMatches()).resolves.toMatchObject([
+      {
+        externalId: 4,
+        status: MatchStatus.FINISHED,
+        finalHomeGoals: 2,
+        finalAwayGoals: 1,
+        scoreWinner: "HOME_TEAM",
+        scoreDuration: "EXTRA_TIME",
+        penaltyHomeGoals: null,
+        penaltyAwayGoals: null,
+      },
+    ]);
+  });
+
   it("clears result fields while matches are not finished", async () => {
     process.env.FOOTBALL_DATA_API_TOKEN = "test-token";
     vi.stubGlobal(
