@@ -136,6 +136,48 @@ describe("fetchWorldCupMatches", () => {
     ]);
   });
 
+  it("falls back to fullTime when regularTime is empty", async () => {
+    process.env.FOOTBALL_DATA_API_TOKEN = "test-token";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          matches: [
+            {
+              id: 5,
+              utcDate: "2026-07-01T20:00:00Z",
+              status: "FINISHED",
+              stage: "LAST_32",
+              homeTeam: { name: "Belgium", tla: "BEL" },
+              awayTeam: { name: "Senegal", tla: "SEN" },
+              score: {
+                winner: "HOME_TEAM",
+                duration: "REGULAR",
+                fullTime: { home: 3, away: 2 },
+                regularTime: { home: null, away: null },
+                extraTime: { home: 1, away: 0 },
+              },
+            },
+          ],
+        }),
+      }),
+    );
+
+    await expect(fetchWorldCupMatches()).resolves.toMatchObject([
+      {
+        externalId: 5,
+        status: MatchStatus.FINISHED,
+        finalHomeGoals: 3,
+        finalAwayGoals: 2,
+        scoreWinner: "HOME_TEAM",
+        scoreDuration: "REGULAR",
+        penaltyHomeGoals: null,
+        penaltyAwayGoals: null,
+      },
+    ]);
+  });
+
   it("clears result fields while matches are not finished", async () => {
     process.env.FOOTBALL_DATA_API_TOKEN = "test-token";
     vi.stubGlobal(

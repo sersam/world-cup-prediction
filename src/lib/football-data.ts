@@ -66,6 +66,10 @@ function scoreValue(score: FootballDataScorePart | undefined, side: "home" | "aw
   return score?.[side] ?? null;
 }
 
+function hasScore(score: FootballDataScorePart | undefined) {
+  return scoreValue(score, "home") !== null || scoreValue(score, "away") !== null;
+}
+
 function combineScores(
   first: FootballDataScorePart | undefined,
   second: FootballDataScorePart | undefined,
@@ -95,6 +99,7 @@ function matchScoreFromScore(score: FootballDataScore | undefined) {
 }
 
 function scoreBeforePenaltiesFromScore(score: FootballDataScore) {
+  if (!hasScore(score.regularTime)) return null;
   return combineScores(score.regularTime, score.extraTime);
 }
 
